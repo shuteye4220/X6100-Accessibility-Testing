@@ -66,6 +66,13 @@ void voice_say_popup(const char *text, uint32_t created_tick);
 /* After a band key: "40 meters CW, 7. 0 30". */
 void voice_announce_band();
 
+/* Typing echo and keyboard review: spoken at once, cutting short what is
+ * being said, if Voice mode allows. Never while transmitting. */
+void voice_say_typing(const char *text);
+
+/* Stop speaking. */
+void voice_silence();
+
 /* Text asked for by a key press, spoken the same way as the above. */
 void voice_say_requested(const char *text);
 

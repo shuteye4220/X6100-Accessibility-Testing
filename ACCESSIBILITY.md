@@ -36,12 +36,36 @@ These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mi
 - **Decoded text**: RTTY is read aloud as it comes in, in phrases, with callsigns and abbreviations spelled out ("C Q D E V E 3 X Y Z K"). Settings > Voice > Read decoded text: Off, Text modes (not the CW decoder, which you hear yourself), or All.
 - **GPS window**: a summary on opening (fix, grid, satellites, UTC time), the grid in phonetics; Summary, Grid, Position, Time and Sats keys; the multi-function knob reads one row at a time and its press repeats the summary; a gained or lost fix, or a new grid, is announced.
 
+## With a keyboard (USB or Bluetooth)
+
+Screen-reader keys, NVDA/JAWS style, while Voice mode is on. The **voice key** is **Caps Lock** or **Insert**: hold it and press one of the keys below. These combinations never reach the radio. Double-tap Caps Lock for a real caps lock. Tap **Control** on its own to stop speech.
+
+Reading received text (RTTY, and the text modes to come) with a review cursor - it starts on the newest line:
+
+- **Voice key + Left / Right**: previous / next character
+- **Voice key + Control + Left / Right**: previous / next word
+- **Voice key + Up / Down**: previous / next line
+- **Voice key + Home / End**: first / newest line
+- **Voice key + C / W / L**: current character / word / line
+- **Voice key + Enter**: read from the cursor to the end
+- **Voice key + R**: the last text received
+
+Readouts and settings:
+
+- **Voice key + S / M / T / B / K**: status, meters, time, battery, function keys
+- **Voice key + E**: typing echo - off, characters, words, characters and words
+- **Voice key + A**: reading received text aloud - off, text modes, all including CW
+- **Voice key + H**: these keys
+
+Typing into a text field (callsign, QTH, CW messages, Wi-Fi password, and the text modes' compose boxes to come) is echoed as set in Settings > Voice > Typing echo (characters by default). The arrows, Home, End, Backspace and Delete say the character you land on or delete.
+
 ## Making a new app speak
 
 Mainline is adding apps (WSPR, JS8, PSK31, Olivia, WeFax, SSTV). Pieces that cover them with little or no code:
 
 - Pop-ups (`msg_*_text_fmt`) are spoken already, unless the same action speaks.
-- Received text: anything shown in the decoder panel (`panel_add_text`) is read aloud already. An app with its own text window calls `voice_decoder_add(text, false)` from the UI thread.
+- Received text: anything shown in the decoder panel (`panel_add_text`) is read aloud already, and can be reviewed from a keyboard. An app with its own text window calls `voice_decoder_add(text, false)` from the UI thread.
+- A compose box that is an `lv_textarea` gets typing echo, and the arrows and deletion spoken, with no code.
 - Function keys are read out by "Speak keys" and on page load, from their labels.
 - `voice_say_requested()` speaks a readout asked for by a key, even with Voice mode off.
 - `voice_text.h` makes values speakable: frequencies, bands, labels, S-meter, grid squares, coordinates, decoded text.

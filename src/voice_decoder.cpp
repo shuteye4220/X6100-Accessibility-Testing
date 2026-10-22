@@ -9,6 +9,7 @@
 #include "voice_decoder.h"
 
 #include "voice.h"
+#include "voice_review.h"
 #include "voice_text.h"
 #include "cfg/cfg_api.h"
 
@@ -22,11 +23,13 @@ static const size_t   phrase_chars = 80;
 /* Text not yet read is capped: reading can't keep up with a fast
  * stream, and stale text is worth less than current text. */
 static const size_t   pending_max  = 400;
-/* Kept for "Read decoded text". */
-static const size_t   history_max  = 300;
+/* "Read decoded text" reads this much of the end. */
+static const size_t   read_last_chars = 300;
 
 static std::string  pending;
-static std::string  history;
+/* Everything received recently, for "Read decoded" and the keyboard
+ * review cursor. */
+static voice::ReviewText review;
 static uint32_t     last_rx  = 0;
 static bool         skipped  = false;
 static lv_timer_t  *timer    = NULL;
@@ -93,8 +96,7 @@ void voice_decoder_add(const char *text, bool cw) {
         return;
     }
 
-    history += text;
-    keep_tail(history, history_max);
+    review.append(text);
 
     if (!auto_read(cw)) {
         pending.clear();
@@ -114,14 +116,28 @@ void voice_decoder_add(const char *text, bool cw) {
     lv_timer_resume(timer);
 }
 
+voice::ReviewText &voice_decoder_review() {
+    return review;
+}
+
 void voice_decoder_read_last() {
-    std::string text = voice::decoded_text(history);
+    std::string last = review.text();
+
+    if (last.size() > read_last_chars) {
+        last.erase(0, last.size() - read_last_chars);
+        size_t sp = last.find(' ');
+        if (sp != std::string::npos && sp < 20) {
+            last.erase(0, sp + 1);
+        }
+    }
+
+    std::string text = voice::decoded_text(last);
 
     voice_say_requested(text.empty() ? "Nothing received yet." : text.c_str());
 }
 
 void voice_decoder_clear() {
-    history.clear();
+    review.clear();
     pending.clear();
     skipped = false;
 }

@@ -314,6 +314,9 @@ class SettingsManager {
     // Read decoded text aloud: 0 off, 1 text modes (not CW), 2 all
     Parameter<int32_t> p_voice_decoded{"voice_decoded", 1, 0, 2,
         StorageType::GLOBAL, pending_writes_, &global_params_};
+    // Typing echo in text fields: 0 none, 1 characters, 2 words, 3 both
+    Parameter<int32_t> p_voice_echo{"voice_echo", 1, 0, 3,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
 
     // Audio play/record gain (REAL in the DB, no scaling: matches legacy)
     Parameter<float> p_play_gain_db{"play_gain_db_f", 0.0f, {},

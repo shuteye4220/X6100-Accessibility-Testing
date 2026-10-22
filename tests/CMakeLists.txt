@@ -45,3 +45,11 @@ target_include_directories(test_voice_text PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(test_voice_text PRIVATE Catch2::Catch2WithMain)
 add_test(NAME test_voice_text COMMAND $<TARGET_FILE:test_voice_text> --colour-mode=ansi)
 
+# test_voice_review: keyboard review cursor and typing echo
+# (src/voice_review.cpp; plain C++).
+add_executable(test_voice_review test_voice_review.cpp
+    ${PROJECT_SOURCE_DIR}/src/voice_review.cpp ${PROJECT_SOURCE_DIR}/src/voice_text.cpp)
+target_include_directories(test_voice_review PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(test_voice_review PRIVATE Catch2::Catch2WithMain)
+add_test(NAME test_voice_review COMMAND $<TARGET_FILE:test_voice_review> --colour-mode=ansi)
+

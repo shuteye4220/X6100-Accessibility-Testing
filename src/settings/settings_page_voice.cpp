@@ -132,6 +132,16 @@ static void make_voice_behavior(SettingsPage &page) {
     lv_obj_center(obj);
 
     page.row++;
+    page.label("Typing echo");
+
+    obj = page.dropdown_int(page.grid, *cfg.voice.echo(), " None \n Characters \n Words \n Characters and words ",
+                            "Typing echo");
+
+    lv_obj_set_size(obj, SMALL_6, 56);
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, page.row, 1);
+    lv_obj_center(obj);
+
+    page.row++;
 }
 
 /***** PAGE *****/

@@ -13,6 +13,7 @@
 
 #include "kbd_rollover.h"
 #include "voice.h"
+#include "voice_keys.h"
 #include "lv_drivers/indev/evdev.h"
 #include "lv_drivers/indev/xkb.h"
 
@@ -58,9 +59,21 @@ static bool kbd_next(void *ctx, uint16_t *scancode, uint32_t *key, int *value) {
     struct input_event in;
     while (read(evdev_fd, &in, sizeof(in)) > 0) {
         if (in.type != EV_KEY) continue;
+
+        /* Screen-reader keys (voice key + key) never reach xkb or LVGL. */
+        bool toggle_caps;
+        if (voice_keys_pre(in.code, in.value, &toggle_caps)) {
+            if (toggle_caps) {
+                xkb_process_key(KEY_CAPSLOCK, 1);
+                xkb_process_key(KEY_CAPSLOCK, 0);
+            }
+            continue;
+        }
+
         *scancode = in.code;
         *value    = in.value;
         *key      = xkb_process_key(in.code, in.value); /* also keeps Shift state */
+        voice_keys_post(in.code, *key, in.value);     /* typing echo */
         return true;
     }
     return false;

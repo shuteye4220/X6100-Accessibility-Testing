@@ -11,7 +11,8 @@
  *  New text is read out in phrases - at a line break, after a pause in
  *  reception, or every ~80 characters - never cutting itself short: while
  *  a phrase is being spoken, newer text waits. The last few hundred
- *  characters are kept for "Read decoded text" (an assignable action).
+ *  characters are read by "Read decoded" (an assignable action), and the
+ *  last 8000 are kept for the keyboard review cursor (voice_keys.h).
  *
  *  Voice settings, "Read decoded text": Off, Text modes (everything but
  *  the CW decoder - you hear CW yourself), or All.
@@ -44,4 +45,11 @@ void voice_decoder_clear();
 
 #ifdef __cplusplus
 }
+
+namespace voice {
+class ReviewText;
+}
+
+/* The received text, for the keyboard review cursor (voice_keys.cpp). */
+voice::ReviewText &voice_decoder_review();
 #endif

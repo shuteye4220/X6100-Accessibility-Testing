@@ -529,11 +529,17 @@ void voice_say_lang() {
 /* Asked for by a key press: spoken now even with voice mode off, and
  * even if something is being said with "Interrupt speech" off, which
  * would otherwise drop it. Not while recording (the mic would hear it). */
+/* Speech uses the radio's audio path, which is transmitted while keyed
+ * up: nothing asked for by a key or typed is spoken then. */
+static bool on_air() {
+    return radio_get_state() != RADIO_RX;
+}
+
 static void say_on_demand(const std::string &text) {
     last_request_tick = lv_tick_get();
     have_request      = true;
 
-    if (recorder_is_on()) {
+    if (recorder_is_on() || on_air()) {
         return;
     }
 
@@ -578,6 +584,22 @@ void voice_say_requested(const char *text) {
     if (text && *text) {
         say_on_demand(text);
     }
+}
+
+void voice_say_typing(const char *text) {
+    if (!text || !*text || cfg.voice.mode()->get() == VOICE_OFF) {
+        return;
+    }
+    if (cfg.voice.mode()->get() == VOICE_LCD && display_is_on()) {
+        return;
+    }
+    /* Each key cuts short the last one's echo, as in a screen reader,
+     * whether or not "Interrupt speech" is on. */
+    say_on_demand(text);
+}
+
+void voice_silence() {
+    voice_stop_current();
 }
 
 void voice_say_status() {
