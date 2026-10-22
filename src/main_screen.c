@@ -261,6 +261,10 @@ void main_screen_action(press_action_t action) {
             voice_say_meter();
             break;
 
+        case ACTION_VOICE_KEYS:
+            buttons_say_keys();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;

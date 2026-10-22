@@ -110,6 +110,12 @@ static void make_voice_behavior(SettingsPage &page) {
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 3, LV_GRID_ALIGN_CENTER, page.row, 1);
 
     page.row++;
+    page.label("Read function keys");
+
+    obj = page.switch_bool(page.grid, *cfg.voice.keys(), "Read function keys");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, page.row, 1);
+
+    page.row++;
 }
 
 /***** PAGE *****/

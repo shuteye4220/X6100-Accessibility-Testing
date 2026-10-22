@@ -51,6 +51,9 @@ void voice_wait_done();
 void voice_say_status();
 void voice_say_meter();
 
+/* Text asked for by a key press, spoken the same way as the above. */
+void voice_say_requested(const char *text);
+
 #ifdef __cplusplus
 }
 #endif

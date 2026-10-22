@@ -305,6 +305,9 @@ class SettingsManager {
         StorageType::GLOBAL, pending_writes_, &global_params_};
     Parameter<int32_t> p_voice_freq_interrupt_delay_ms{"voice_freq_interrupt_delay_ms", 1000, 0, 1000,
         StorageType::GLOBAL, pending_writes_, &global_params_};
+    // Read what F1-F5 do after a key page's name
+    Parameter<int32_t> p_voice_keys{"voice_keys", true, 0, 1,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
 
     // Audio play/record gain (REAL in the DB, no scaling: matches legacy)
     Parameter<float> p_play_gain_db{"play_gain_db_f", 0.0f, {},

@@ -13,6 +13,7 @@
 #include "format.h"
 #include "cfg/cfg_api.h"
 #include "cfg/encoder_defaults.h"
+#include "voice_text.h"
 
 #include <stdio.h>
 #include <string>
@@ -638,6 +639,69 @@ void buttons_load(uint8_t n, button_data_t *data) {
     }
 }
 
+/* "F2 Volume, 10. F3 Squelch, 0. ..." - what each key does, as its label
+ * shows it. The page key itself (F1, with a page name) is skipped. */
+static std::string page_keys_text(const buttons_page_t *page) {
+    std::string text;
+    bool        named = page->items[0] && page->items[0]->voice;
+
+    for (uint8_t i = named ? 1 : 0; i < BUTTONS; i++) {
+        const button_data_t *b = page->items[i];
+
+        if (!b || b->type == BTN_EMPTY) {
+            continue;
+        }
+
+        const char *label = NULL;
+
+        if (b->type == BTN_TEXT) {
+            label = b->label;
+        } else if (b->type == BTN_TEXT_FN && b->label_fn) {
+            label = b->label_fn();
+        }
+        if (!label || !*label) {
+            continue;
+        }
+
+        if (!text.empty()) {
+            text += " ";
+        }
+        text += "F" + std::to_string(i + 1) + " " + voice::label_text(label);
+        if (b->disabled) {
+            text += ", disabled";
+        }
+        text += ".";
+    }
+    return text;
+}
+
+static std::string page_spoken(const buttons_page_t *page, bool keys) {
+    std::string text;
+
+    if (page->items[0] && page->items[0]->voice) {
+        text = std::string(page->items[0]->voice) + ".";
+    }
+    if (keys) {
+        std::string list = page_keys_text(page);
+
+        if (!list.empty()) {
+            text += (text.empty() ? "" : " ") + list;
+        }
+    }
+    return text;
+}
+
+void buttons_say_keys() {
+    if (!cur_page) {
+        voice_say_requested("No keys.");
+        return;
+    }
+
+    std::string text = page_spoken(cur_page, true);
+
+    voice_say_requested(text.empty() ? "No keys." : text.c_str());
+}
+
 static void buttons_load_page_impl(buttons_page_t *page, bool announce) {
     if (!page) {
         LV_LOG_ERROR("NULL pointer to buttons page");
@@ -652,7 +716,10 @@ static void buttons_load_page_impl(buttons_page_t *page, bool announce) {
         buttons_load(i, page->items[i]);
     }
     if (announce && page->items[0]->voice) {
-        voice_say_text_fmt("%s", page->items[0]->voice);
+        /* One utterance, so the key list can't race the page name. */
+        std::string text = page_spoken(page, cfg.voice.keys()->get());
+
+        voice_say_text_fmt("%s", text.c_str());
     }
 }
 

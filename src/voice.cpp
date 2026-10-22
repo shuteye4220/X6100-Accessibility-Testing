@@ -513,6 +513,12 @@ static const char *mode_text(int32_t mode) {
     return "unknown mode";
 }
 
+void voice_say_requested(const char *text) {
+    if (text && *text) {
+        say_on_demand(text);
+    }
+}
+
 void voice_say_status() {
     int32_t freq  = cfg.cur.fg_freq()->get();
     bool    vfo_b = cfg.band.current_vfo()->get() == X6100_VFO_B;

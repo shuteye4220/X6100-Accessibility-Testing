@@ -165,6 +165,7 @@ static ParamInt *cfg_voice_interrupt(void) { return param_ref<ParamInt>(cfg_inst
 static ParamInt *cfg_voice_repeat_count(void) { return param_ref<ParamInt>(cfg_instance().p_voice_repeat_count); }
 static ParamInt *cfg_voice_interrupt_delay_ms(void) { return param_ref<ParamInt>(cfg_instance().p_voice_interrupt_delay_ms); }
 static ParamInt *cfg_voice_freq_interrupt_delay_ms(void) { return param_ref<ParamInt>(cfg_instance().p_voice_freq_interrupt_delay_ms); }
+static ParamInt *cfg_voice_keys(void) { return param_ref<ParamInt>(cfg_instance().p_voice_keys); }
 static ParamFloat *cfg_play_gain_db(void) { return param_ref<ParamFloat>(cfg_instance().p_play_gain_db); }
 static ParamFloat *cfg_rec_gain_db(void) { return param_ref<ParamFloat>(cfg_instance().p_rec_gain_db); }
 static ParamInt *cfg_rtty_center(void) { return param_ref<ParamInt>(cfg_instance().p_rtty_center); }
@@ -417,6 +418,7 @@ extern "C" const cfg_refs_t cfg = {
         .repeat_count = &cfg_voice_repeat_count,
         .interrupt_delay_ms = &cfg_voice_interrupt_delay_ms,
         .freq_interrupt_delay_ms = &cfg_voice_freq_interrupt_delay_ms,
+        .keys = &cfg_voice_keys,
     },
     .audio = {
         .play_gain_db = &cfg_play_gain_db,

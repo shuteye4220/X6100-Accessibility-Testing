@@ -92,6 +92,9 @@ void            buttons_press(uint8_t n, bool hold);
 void            buttons_load_page_group(buttons_group_t group);
 buttons_page_t *buttons_get_cur_page();
 
+/* Speak the current page's name and what each key does, on request. */
+void            buttons_say_keys();
+
 #ifdef __cplusplus
 }
 #endif

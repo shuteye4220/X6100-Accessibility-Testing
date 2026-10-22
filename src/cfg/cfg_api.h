@@ -232,6 +232,7 @@ typedef struct {
     ParamInt *(*repeat_count)(void); /* p_voice_repeat_count */
     ParamInt *(*interrupt_delay_ms)(void); /* p_voice_interrupt_delay_ms */
     ParamInt *(*freq_interrupt_delay_ms)(void); /* p_voice_freq_interrupt_delay_ms */
+    ParamInt *(*keys)(void); /* p_voice_keys */
 } cfg_voice_refs_t;
 
 typedef struct {
