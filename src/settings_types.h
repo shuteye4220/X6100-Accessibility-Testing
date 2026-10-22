@@ -29,11 +29,6 @@ typedef enum {
     ACTION_BAT_INFO,
     ACTION_NR_TOGGLE,
     ACTION_NB_TOGGLE,
-    ACTION_VOICE_STATUS,    /* speak VFO, band, frequency, mode, filter, power */
-    ACTION_VOICE_METER,     /* speak S-meter and last transmit power/SWR */
-    ACTION_VOICE_KEYS,      /* speak what F1-F5 do on the current page */
-    ACTION_VOICE_DECODED,   /* speak the last decoded RTTY/CW/text */
-    ACTION_VOICE_TIME,      /* speak the radio's clock and date */
 
     /* The ACTION_APP_* values are saved on the card (long-press keys), so
      * each is written out and never reused or changed; a new app takes
@@ -49,6 +44,17 @@ typedef enum {
     ACTION_APP_CALLSIGN,
     ACTION_APP_WIFI,
     ACTION_APP_BT = 116,
+
+    /* Spoken readouts. Saved on the card like the apps, so each value is
+     * written out and never reused, in a range of their own (200+) that
+     * the actions mainline adds one by one after ACTION_NB_TOGGLE won't
+     * reach: a later mainline merge can't turn a saved "Speak status"
+     * key into something else. */
+    ACTION_VOICE_STATUS  = 200, /* VFO, band, frequency, mode, filter, power */
+    ACTION_VOICE_METER   = 201, /* S-meter, CW tuning, last TX power/SWR/ALC */
+    ACTION_VOICE_KEYS    = 202, /* what F1-F5 do on the current page */
+    ACTION_VOICE_DECODED = 203, /* the last decoded RTTY/CW/text */
+    ACTION_VOICE_TIME    = 204, /* the radio's clock and date */
 } press_action_t;
 
 typedef enum {
