@@ -399,15 +399,43 @@ void voice_say_prompted_fmt(const char *prompt, const char *fmt, ...) {
     pthread_create(&thread, NULL, say_thread, NULL);
 }
 
+/* Band last spoken with a frequency; -2: none yet. UI thread only. */
+static int32_t last_band_id = -2;
+
+/* "40 meters CW, " when `freq` is in another band than last spoken (or out
+ * of band), else "". */
+static std::string band_prefix(int32_t freq, bool force) {
+    BandInfoLoadResult band = BandsTable::get_by_freq((uint32_t)freq);
+    int32_t            id   = band.rc == SUCCESS ? band.value.id : BAND_UNDEFINED;
+
+    if (!force && id == last_band_id) {
+        return "";
+    }
+    last_band_id = id;
+
+    return voice::band_text(band.value.name, id) + ", ";
+}
+
 static void voice_say_freq_impl(uint64_t freq, uint32_t say_delay) {
     if (!voice_enable()) {
         return;
     }
 
+    /* Tuning across a band edge says the new band first. Being part of the
+     * prompt, it isn't repeated while tuning within the band. */
+    std::string band = band_prefix((int32_t)freq, false);
+    size_t      pos  = snprintf(buf, sizeof(buf), "%s", band.c_str());
+
+    if (pos >= sizeof(buf)) {
+        pos = sizeof(buf) - 1;
+    }
+
     /* "14. 0 0 5": leading zeros of the kHz part are spoken, so 14.005 MHz
      * isn't heard as "14. 5"; Hz are digits after "point" (14.200050 MHz
      * was read as "200.50"). The "14. " prompt is skipped on repeat. */
-    prompt_len = voice_text_freq((int32_t)freq, buf, sizeof(buf));
+    size_t plen = voice_text_freq((int32_t)freq, buf + pos, sizeof(buf) - pos);
+
+    prompt_len = plen ? pos + plen : 0;
 
     voice_stop_current();
 
@@ -511,6 +539,19 @@ static const char *mode_text(int32_t mode) {
         case x6100_mode_nfm:     return "N F M";
     }
     return "unknown mode";
+}
+
+void voice_announce_band() {
+    if (!voice_enable()) {
+        return;
+    }
+
+    int32_t     freq = cfg.cur.fg_freq()->get();
+    std::string band = band_prefix(freq, true);
+    char        f[64];
+
+    voice_text_freq(freq, f, sizeof(f));
+    voice_say_text_fmt("%s%s", band.c_str(), f);
 }
 
 void voice_say_requested(const char *text) {

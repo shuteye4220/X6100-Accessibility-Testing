@@ -51,6 +51,9 @@ void voice_wait_done();
 void voice_say_status();
 void voice_say_meter();
 
+/* After a band key: "40 meters CW, 7. 0 30". */
+void voice_announce_band();
+
 /* Text asked for by a key press, spoken the same way as the above. */
 void voice_say_requested(const char *text);
 

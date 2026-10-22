@@ -450,12 +450,13 @@ static void keypad_pre(const event_keypad_t *kp) {
     }
 }
 
-// Band up/down from any key: switch, then speak the new band's name.
+// Band up/down from any key: switch, then speak the new band and its
+// frequency ("40 meters CW, 7. 0 30").
 static void band_load_next_say(bool up) {
     char name[32];
 
     if (cfg_band_load_next_named(up, name, sizeof(name))) {
-        voice_say_text_fmt("Band %s", name);
+        voice_announce_band();
     }
 }
 
