@@ -10,6 +10,7 @@
 
 #include "util.h"
 #include "display.h"
+#include "voice_text.h"
 
 extern "C" {
 #include <unistd.h>
@@ -397,22 +398,10 @@ static void voice_say_freq_impl(uint64_t freq, uint32_t say_delay) {
         return;
     }
 
-    uint16_t    mhz, khz, hz;
-
-    split_freq(freq, &mhz, &khz, &hz);
-
-    if (hz || khz) {
-        int n = snprintf(buf, sizeof(buf), "%i.", mhz);
-        prompt_len = (n > 0) ? (size_t)n : 0;
-        if (hz) {
-            snprintf(buf + prompt_len, sizeof(buf) - prompt_len, "%i.%i", khz, hz);
-        } else {
-            snprintf(buf + prompt_len, sizeof(buf) - prompt_len, "%i", khz);
-        }
-    } else {
-        snprintf(buf, sizeof(buf), "%i", mhz);
-        prompt_len = 0;
-    }
+    /* "14. 0 0 5": leading zeros of the kHz part are spoken, so 14.005 MHz
+     * isn't heard as "14. 5"; Hz are digits after "point" (14.200050 MHz
+     * was read as "200.50"). The "14. " prompt is skipped on repeat. */
+    prompt_len = voice_text_freq((int32_t)freq, buf, sizeof(buf));
 
     voice_stop_current();
 
@@ -444,23 +433,10 @@ void voice_say_prompted_freq_now(const char *prompt, uint64_t freq) {
         return;
     }
 
-    uint16_t mhz, khz, hz;
-    split_freq(freq, &mhz, &khz, &hz);
-
     int    n   = snprintf(buf, sizeof(buf), "%s, ", prompt);
     size_t pos = (n > 0 && (size_t)n < sizeof(buf)) ? (size_t)n : sizeof(buf) - 1;
 
-    if (hz || khz) {
-        int n2 = snprintf(buf + pos, sizeof(buf) - pos, "%i.", mhz);
-        pos += (n2 > 0) ? (size_t)n2 : 0;
-        if (hz) {
-            snprintf(buf + pos, sizeof(buf) - pos, "%i.%i", khz, hz);
-        } else {
-            snprintf(buf + pos, sizeof(buf) - pos, "%i", khz);
-        }
-    } else {
-        snprintf(buf + pos, sizeof(buf) - pos, "%i", mhz);
-    }
+    voice_text_freq((int32_t)freq, buf + pos, sizeof(buf) - pos);
     prompt_len = 0;
 
     voice_stop_current();

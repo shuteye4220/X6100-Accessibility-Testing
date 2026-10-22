@@ -37,3 +37,11 @@ add_executable(test_civ test_civ.cpp)
 target_include_directories(test_civ PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(test_civ PRIVATE cat_core Catch2::Catch2WithMain)
 add_test(NAME test_civ COMMAND $<TARGET_FILE:test_civ> --colour-mode=ansi)
+
+# test_voice_text: speakable text for the voice assistant
+# (src/voice_text.cpp; plain C++, no synthesizer).
+add_executable(test_voice_text test_voice_text.cpp ${PROJECT_SOURCE_DIR}/src/voice_text.cpp)
+target_include_directories(test_voice_text PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(test_voice_text PRIVATE Catch2::Catch2WithMain)
+add_test(NAME test_voice_text COMMAND $<TARGET_FILE:test_voice_text> --colour-mode=ansi)
+
