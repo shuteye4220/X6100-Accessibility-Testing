@@ -64,6 +64,8 @@ static action_items_t long_action_items[] = {
     {.label = " Mute ",            .action = ACTION_MUTE        },
     {.label = " Voice mode ",      .action = ACTION_VOICE_MODE  },
     {.label = " Battery info ",    .action = ACTION_BAT_INFO    },
+    {.label = " Speak status ",    .action = ACTION_VOICE_STATUS},
+    {.label = " Speak meters ",    .action = ACTION_VOICE_METER },
     {.label = " APP RTTY ",        .action = ACTION_APP_RTTY    },
     {.label = " APP FT8 ",         .action = ACTION_APP_FT8     },
     {.label = " APP SWR Scan ",    .action = ACTION_APP_SWRSCAN },
@@ -145,6 +147,8 @@ static action_items_t hmic_action_items[] = {
     {.label = " Step down ",       .action = ACTION_STEP_DOWN },
     {.label = " Voice mode ",      .action = ACTION_VOICE_MODE},
     {.label = " Battery info ",    .action = ACTION_BAT_INFO  },
+    {.label = " Speak status ",    .action = ACTION_VOICE_STATUS},
+    {.label = " Speak meters ",    .action = ACTION_VOICE_METER },
     {.label = " NR toggle ",       .action = ACTION_NR_TOGGLE },
     {.label = " NB toggle ",       .action = ACTION_NB_TOGGLE },
     {.label = NULL,                .action = ACTION_NONE      }

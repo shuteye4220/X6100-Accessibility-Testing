@@ -253,6 +253,14 @@ void main_screen_action(press_action_t action) {
             clock_say_bat_info();
             break;
 
+        case ACTION_VOICE_STATUS:
+            voice_say_status();
+            break;
+
+        case ACTION_VOICE_METER:
+            voice_say_meter();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;

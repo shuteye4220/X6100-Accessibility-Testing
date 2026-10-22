@@ -29,6 +29,8 @@ typedef enum {
     ACTION_BAT_INFO,
     ACTION_NR_TOGGLE,
     ACTION_NB_TOGGLE,
+    ACTION_VOICE_STATUS,    /* speak VFO, band, frequency, mode, filter, power */
+    ACTION_VOICE_METER,     /* speak S-meter and last transmit power/SWR */
 
     /* The ACTION_APP_* values are saved on the card (long-press keys), so
      * each is written out and never reused or changed; a new app takes

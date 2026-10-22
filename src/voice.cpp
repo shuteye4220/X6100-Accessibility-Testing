@@ -11,6 +11,11 @@
 #include "util.h"
 #include "display.h"
 #include "voice_text.h"
+#include "lock_manager.h"
+
+/* C++ headers: before the extern "C" block. */
+#include "cfg/cfg_api.h"
+#include "cfg/db.h"
 
 extern "C" {
 #include <unistd.h>
@@ -21,9 +26,10 @@ extern "C" {
 #include "bt_audio.h"
 #include "recorder.h"
 #include "msg.h"
+#include "meter.h"
+#include "tx_info.h"
 }
 
-#include "cfg/cfg_api.h"
 
 #include <atomic>
 #include <memory>
@@ -471,4 +477,82 @@ void voice_say_text(const char *prompt, const char *x) {
 
 void voice_say_lang() {
     voice_delay_say_text_fmt(voice_item[cfg.voice.lang()->get()].welcome);
+}
+
+/***** On-demand readouts *****/
+
+/* Asked for by a key press: spoken now even with voice mode off, and
+ * even if something is being said with "Interrupt speech" off, which
+ * would otherwise drop it. Not while recording (the mic would hear it). */
+static void say_on_demand(const std::string &text) {
+    if (recorder_is_on()) {
+        return;
+    }
+
+    /* Stop first: the old thread may still be reading buf. */
+    voice_stop_current();
+
+    snprintf(buf, sizeof(buf), "%s", text.c_str());
+    prompt_len = 0;
+
+    delay = 0;
+    pthread_create(&thread, NULL, say_thread, NULL);
+}
+
+static const char *mode_text(int32_t mode) {
+    switch ((x6100_mode_t)mode) {
+        case x6100_mode_lsb:     return "LSB";
+        case x6100_mode_lsb_dig: return "LSB digital";
+        case x6100_mode_usb:     return "USB";
+        case x6100_mode_usb_dig: return "USB digital";
+        case x6100_mode_cw:      return "CW";
+        case x6100_mode_cwr:     return "CW reverse";
+        case x6100_mode_am:      return "A M";
+        case x6100_mode_nfm:     return "N F M";
+    }
+    return "unknown mode";
+}
+
+void voice_say_status() {
+    int32_t freq  = cfg.cur.fg_freq()->get();
+    bool    vfo_b = cfg.band.current_vfo()->get() == X6100_VFO_B;
+
+    BandInfoLoadResult band = BandsTable::get_by_freq((uint32_t)freq);
+    int32_t            id   = band.rc == SUCCESS ? band.value.id : BAND_UNDEFINED;
+
+    char f[64];
+    voice_text_freq(freq, f, sizeof(f));
+
+    std::string text = vfo_b ? "V F O B. " : "V F O A. ";
+
+    text += voice::band_text(band.value.name, id) + ". ";
+    text += std::string(f) + ". ";
+    text += std::string(mode_text(cfg.cur.mode()->get())) + ". ";
+    text += "Filter " + std::to_string(cfg.filter.bw()->get()) + " hertz. ";
+    text += "Power " + voice::number_text(cfg.pwr()->get(), 1) + " watts.";
+
+    if (cfg.band.split()->get()) {
+        text += " Split on.";
+    }
+    if (lm_get_freq()) {
+        text += " Frequency locked.";
+    }
+
+    say_on_demand(text);
+}
+
+void voice_say_meter() {
+    std::string text = voice::s_meter_text(meter_get_db()) + ". ";
+    float       pwr = 0.0f, swr = 0.0f;
+
+    if (tx_info_get_summary(&pwr, &swr)) {
+        /* The SWR meter stops at 5. */
+        std::string swr_text = swr >= 4.95f ? "5 or more" : voice::number_text(swr < 1.0f ? 1.0f : swr, 1);
+
+        text += "Last transmit, power " + voice::number_text(pwr, 1) + " watts, S W R " + swr_text + ".";
+    } else {
+        text += "No transmission yet.";
+    }
+
+    say_on_demand(text);
 }

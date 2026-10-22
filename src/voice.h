@@ -45,6 +45,12 @@ void voice_say_lang();
 
 void voice_wait_done();
 
+/* On demand, even with voice mode off. Status: VFO, band, frequency, mode,
+ * filter width, power, split and lock. Meters: S-meter and the last
+ * transmission's power and SWR. */
+void voice_say_status();
+void voice_say_meter();
+
 #ifdef __cplusplus
 }
 #endif
