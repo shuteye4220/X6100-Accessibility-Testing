@@ -246,6 +246,82 @@ std::string number_text(float value, int decimals) {
 }
 
 
+/* Spelled rather than read as words: Q codes, prosigns and common CW/RTTY
+ * abbreviations. Matched on the whole word, ignoring case. */
+static const char *const ham_abbrev[] = {
+    "CQ",  "DE",  "QRZ", "QSL", "QSO", "QTH", "QRM", "QRN", "QSB", "QRP", "QRO", "QRL", "QRT", "QSY",
+    "RST", "TU",  "TNX", "TKS", "PSE", "UR",  "ES",  "FB",  "OM",  "YL",  "XYL", "GM",  "GA",  "GE",
+    "GN",  "HW",  "CPY", "BK",  "KN",  "SK",  "AR",  "AS",  "BT",  "CL",  "WX",  "HR",  "NR",  "RPT",
+    "AGN", "CUL", "DX",  "OP",  "ANT", "PWR", "RIG", "SRI", "TEST", "NIL",
+};
+
+static bool is_ham_abbrev(const std::string &w) {
+    for (const char *a : ham_abbrev) {
+        if (w.size() != strlen(a)) {
+            continue;
+        }
+        bool same = true;
+        for (size_t i = 0; i < w.size(); i++) {
+            if (toupper((unsigned char)w[i]) != a[i]) {
+                same = false;
+                break;
+            }
+        }
+        if (same) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static std::string spell(const std::string &w) {
+    std::string out;
+
+    for (char c : w) {
+        if (!isalnum((unsigned char)c) && c != '/') {
+            continue;
+        }
+        if (!out.empty()) {
+            out += ' ';
+        }
+        if (c == '/') {
+            out += "stroke";
+        } else {
+            out += (char)toupper((unsigned char)c);
+        }
+    }
+    return out;
+}
+
+std::string decoded_text(const std::string &text) {
+    std::string flat;
+
+    for (char c : text) {
+        unsigned char u = (unsigned char)c;
+
+        if (c == '\n' || c == '\r' || c == '\t') {
+            flat += ' ';
+        } else if (u >= 0x20 && u < 0x7f) {
+            flat += c;
+        }
+    }
+
+    std::vector<std::string> w = words(flat);
+
+    for (std::string &s : w) {
+        bool letters = false, digits = false;
+
+        for (char c : s) {
+            letters |= isalpha((unsigned char)c) != 0;
+            digits |= isdigit((unsigned char)c) != 0;
+        }
+        if ((letters && digits) || is_ham_abbrev(s)) {
+            s = spell(s);
+        }
+    }
+    return join(w);
+}
+
 static const char *const phonetic[26] = {
     "Alfa",  "Bravo",   "Charlie", "Delta",  "Echo",   "Foxtrot", "Golf",
     "Hotel", "India",   "Juliett", "Kilo",   "Lima",   "Mike",    "November",
@@ -344,6 +420,10 @@ void voice_text_grid(const char *grid, char *out, size_t n) {
 
 void voice_text_coord(double deg, bool latitude, char *out, size_t n) {
     voice::copy_out(voice::coord_text(deg, latitude), out, n);
+}
+
+void voice_text_decoded(const char *text, char *out, size_t n) {
+    voice::copy_out(voice::decoded_text(text ? text : ""), out, n);
 }
 
 } // extern "C"

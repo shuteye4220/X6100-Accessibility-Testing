@@ -97,6 +97,15 @@ TEST_CASE("coordinates as degrees and minutes", "[voice][text][gps]") {
     CHECK(coord_text(NAN, true) == "unknown");
 }
 
+TEST_CASE("decoded text spells callsigns and abbreviations", "[voice][text][decoder]") {
+    CHECK(decoded_text("CQ CQ DE VE3XYZ VE3XYZ K") == "C Q C Q D E V E 3 X Y Z V E 3 X Y Z K");
+    CHECK(decoded_text("ur rst 599 599") == "U R R S T 599 599");
+    CHECK(decoded_text("NAME IS JIM\r\nQTH OTTAWA") == "NAME IS JIM Q T H OTTAWA");
+    CHECK(decoded_text("VE3XYZ/P") == "V E 3 X Y Z stroke P");
+    CHECK(decoded_text("  \n\x07  ") == "");
+    CHECK(decoded_text("TEST de K1ABC") == "T E S T D E K 1 A B C");
+}
+
 TEST_CASE("the C helpers never overrun", "[voice][text]") {
     char buf[8];
 

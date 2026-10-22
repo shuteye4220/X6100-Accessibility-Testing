@@ -212,6 +212,10 @@ void voice_sure() {
 // sink's own buffering adds real latency after that point (measured at
 // ~380ms steady-state on this hardware during live testing). The extra
 // sleep below absorbs that gap so callers don't have to know about it.
+bool voice_is_busy() {
+    return run;
+}
+
 void voice_wait_done() {
     while (run) {
         usleep(10000);

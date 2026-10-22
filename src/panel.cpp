@@ -11,6 +11,7 @@
 #include "util.h"
 #include "cfg/cfg_api.h"
 #include "scheduler.h"
+#include "voice_decoder.h"
 
 extern "C" {
     #include "rtty.h"
@@ -88,6 +89,10 @@ static void panel_update_text_cb(const char *text) {
     }
     truncate();
     lv_label_set_text_static(obj, buf);
+
+    /* The CW decoder writes here in CW modes, RTTY otherwise. */
+    x6100_mode_t mode = (x6100_mode_t)cfg.cur.mode()->get();
+    voice_decoder_add(text, mode == x6100_mode_cw || mode == x6100_mode_cwr);
 }
 
 static void panel_update_info_cb(const char *text) {
@@ -169,6 +174,7 @@ void panel_clear() {
         buf[0] = '\0';
         buf_write = buf;
         lv_label_set_text_static(obj, buf);
+        voice_decoder_clear();
     }
 }
 

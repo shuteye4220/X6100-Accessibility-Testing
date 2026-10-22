@@ -38,6 +38,13 @@ std::string s_meter_text(float dbm);
 /* At most `decimals` digits after the point, trailing zeros dropped. */
 std::string number_text(float value, int decimals);
 
+/* Decoded RTTY/CW/digital text made speakable: callsigns and other
+ * letter-digit mixes, and ham abbreviations, are spelled out ("CQ DE
+ * VE3XYZ K" -> "C Q D E V E 3 X Y Z K"); control characters go; runs of
+ * spaces and line breaks become one pause. Plain words and numbers are
+ * left for the synthesizer. */
+std::string decoded_text(const std::string &text);
+
 /* A Maidenhead locator in ITU phonetics: "FN25dk" -> "Foxtrot November
  * 2 5 Delta Kilo". */
 std::string grid_text(const std::string &grid);
@@ -61,6 +68,7 @@ void   voice_text_s_meter(float dbm, char *out, size_t n);
 void   voice_text_number(float value, int decimals, char *out, size_t n);
 void   voice_text_grid(const char *grid, char *out, size_t n);
 void   voice_text_coord(double deg, bool latitude, char *out, size_t n);
+void   voice_text_decoded(const char *text, char *out, size_t n);
 
 #ifdef __cplusplus
 }

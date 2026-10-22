@@ -32,6 +32,7 @@ typedef enum {
     ACTION_VOICE_STATUS,    /* speak VFO, band, frequency, mode, filter, power */
     ACTION_VOICE_METER,     /* speak S-meter and last transmit power/SWR */
     ACTION_VOICE_KEYS,      /* speak what F1-F5 do on the current page */
+    ACTION_VOICE_DECODED,   /* speak the last decoded RTTY/CW/text */
 
     /* The ACTION_APP_* values are saved on the card (long-press keys), so
      * each is written out and never reused or changed; a new app takes

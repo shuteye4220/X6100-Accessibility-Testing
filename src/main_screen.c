@@ -56,6 +56,7 @@
 #include "indicators.h"
 #include "freq_info.h"
 #include "lock_manager.h"
+#include "voice_decoder.h"
 
 #include <unistd.h>
 #include <stdint.h>
@@ -263,6 +264,10 @@ void main_screen_action(press_action_t action) {
 
         case ACTION_VOICE_KEYS:
             buttons_say_keys();
+            break;
+
+        case ACTION_VOICE_DECODED:
+            voice_decoder_read_last();
             break;
 
         case ACTION_STEP_UP:

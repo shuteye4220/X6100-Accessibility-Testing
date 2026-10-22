@@ -45,6 +45,9 @@ void voice_say_lang();
 
 void voice_wait_done();
 
+/* True while an announcement is being spoken. */
+bool voice_is_busy();
+
 /* On demand, even with voice mode off. Status: VFO, band, frequency, mode,
  * filter width, power, split and lock. Meters: S-meter and the last
  * transmission's power and SWR. */
