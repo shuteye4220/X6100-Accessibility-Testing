@@ -28,10 +28,12 @@ extern "C" {
 #include "msg.h"
 #include "meter.h"
 #include "tx_info.h"
+#include "radio.h"
 }
 
 
 #include <atomic>
+#include <cctype>
 #include <memory>
 #include <stdexcept>
 #include <iostream>
@@ -241,7 +243,15 @@ void voice_change_mode() {
     }
 }
 
+/* lv_tick_get() of the last announcement asked for, spoken or not. Lets a
+ * pop-up shown by the same action stay quiet (voice_say_popup()). */
+static std::atomic<uint32_t> last_request_tick{0};
+static std::atomic<bool>     have_request{false};
+
 bool voice_enable() {
+    last_request_tick = lv_tick_get();
+    have_request      = true;
+
     if (recorder_is_on()) {
         return false;
     }
@@ -513,6 +523,9 @@ void voice_say_lang() {
  * even if something is being said with "Interrupt speech" off, which
  * would otherwise drop it. Not while recording (the mic would hear it). */
 static void say_on_demand(const std::string &text) {
+    last_request_tick = lv_tick_get();
+    have_request      = true;
+
     if (recorder_is_on()) {
         return;
     }
@@ -602,4 +615,79 @@ void voice_say_meter() {
     }
 
     say_on_demand(text);
+}
+
+/***** Pop-up messages *****/
+
+/* "#FFFFFF NR: On" -> "NR: On": LVGL recolor marks ("#RGB ", "#RRGGBB ",
+ * and the closing '#') are not spoken. */
+static std::string strip_recolor(const char *text) {
+    std::string out;
+
+    for (const char *p = text; *p; p++) {
+        if (*p != '#') {
+            out += *p;
+            continue;
+        }
+
+        size_t n = 0;
+        while (n < 6 && isxdigit((unsigned char)p[1 + n])) {
+            n++;
+        }
+        if ((n == 3 || n == 6) && p[1 + n] == ' ') {
+            p += n + 1; /* the mark and its space */
+        }
+        /* else: a closing '#', dropped */
+    }
+    return out;
+}
+
+void voice_say_popup(const char *text, uint32_t created_tick) {
+    /* An announcement asked for within this window of the pop-up being
+     * made belongs to the same action, which then needs no pop-up speech. */
+    static const uint32_t paired_ms = 1000;
+    /* A pop-up that only differs in numbers from the one just spoken is a
+     * countdown or progress update ("Beacon pause: 9 s"): not repeated. */
+    static const uint32_t repeat_ms = 10000;
+
+    static std::string last_key;
+    static uint32_t    last_tick = 0;
+
+    if (!text || !*text || !cfg.voice.popups()->get()) {
+        return;
+    }
+    if (radio_get_state() != RADIO_RX) {
+        return; /* would go out on the air with the headset PTT */
+    }
+
+    if (have_request) {
+        uint32_t req  = last_request_tick;
+        uint32_t diff = req > created_tick ? req - created_tick : created_tick - req;
+
+        if (diff <= paired_ms) {
+            return;
+        }
+    }
+
+    std::string clean = strip_recolor(text);
+    std::string key;
+
+    for (char c : clean) {
+        if (!isdigit((unsigned char)c)) {
+            key += c;
+        }
+    }
+    if (key == last_key && lv_tick_elaps(last_tick) < repeat_ms) {
+        return;
+    }
+
+    std::string spoken = voice::label_text(clean);
+
+    if (spoken.empty() || !voice_enable()) {
+        return;
+    }
+    last_key  = key;
+    last_tick = lv_tick_get();
+
+    voice_say_text_fmt("%s", spoken.c_str());
 }

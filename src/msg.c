@@ -11,6 +11,7 @@
 #include "styles.h"
 #include "util.h"
 #include "events.h"
+#include "voice.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@ typedef struct {
     char            text[128];
     enum msg_type_t type;
     uint16_t        dur;
+    uint32_t        created; /* lv_tick_get() when the message was made */
 } delayed_message_t;
 
 static void fade_out_timer_cb(lv_timer_t *t) {
@@ -61,6 +63,10 @@ static void msg_show_timer(lv_timer_t *t) {
     }
     lv_label_set_text(obj, msg->text);
     lv_obj_move_foreground(container);
+
+    /* Spoken when shown, unless the code that showed it also spoke. */
+    voice_say_popup(msg->text, msg->created);
+
     lv_anim_set_values(&fade, lv_obj_get_style_opa(obj, 0), LV_OPA_COVER);
     fade_run = true;
     lv_anim_start(&fade);
@@ -92,6 +98,7 @@ static void msg_update_cb(lv_event_t * e) {
 static void create_msg(const char * fmt, enum msg_type_t type, uint16_t dur, va_list args) {
     delayed_message_t * msg = (delayed_message_t *) malloc(sizeof(delayed_message_t));
     vsnprintf(msg->text, sizeof(msg->text), fmt, args);
+    msg->created = lv_tick_get();
     msg->type = type;
     msg->dur = dur;
     event_send(obj, EVENT_MSG_UPDATE, (void*)msg);

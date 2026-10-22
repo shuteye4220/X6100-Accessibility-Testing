@@ -51,6 +51,12 @@ void voice_wait_done();
 void voice_say_status();
 void voice_say_meter();
 
+/* An on-screen pop-up message (msg.c) as it is shown. Spoken only if no
+ * announcement was asked for around the time it was made (the code that
+ * made it already speaks), not while transmitting, and not a countdown or
+ * progress update of the one just spoken. Setting: Speak pop-up messages. */
+void voice_say_popup(const char *text, uint32_t created_tick);
+
 /* After a band key: "40 meters CW, 7. 0 30". */
 void voice_announce_band();
 

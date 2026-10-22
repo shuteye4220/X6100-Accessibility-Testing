@@ -278,6 +278,7 @@ void main_screen_action(press_action_t action) {
             b = !b;
             param_i_set(cfg.dsp.nr(), b);
             msg_update_text_fmt("#FFFFFF NR: %s", b ? "On" : "Off");
+            voice_say_text_fmt("Noise reduction %s", b ? "on" : "off");
             break;
 
         case ACTION_NB_TOGGLE:
@@ -285,6 +286,7 @@ void main_screen_action(press_action_t action) {
             b = !b;
             param_i_set(cfg.dsp.nb(), b);
             msg_update_text_fmt("#FFFFFF NB: %s", b ? "On" : "Off");
+            voice_say_text_fmt("Noise blanker %s", b ? "on" : "off");
             break;
 
         case ACTION_APP_RTTY:
