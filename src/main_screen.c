@@ -195,8 +195,8 @@ void main_screen_start_app(press_action_t app_action) {
             break;
 
         case ACTION_APP_GPS:
+            // The window says its own name with a summary of the fix.
             dialog_construct(dialog_gps, obj);
-            voice_say_text_fmt("GPS window");
             break;
 
         case ACTION_APP_RECORDER:
