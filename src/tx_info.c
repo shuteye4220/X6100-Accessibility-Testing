@@ -37,6 +37,7 @@ static uint8_t msg_id;
  * Written on the radio thread, read on the UI thread after RX. */
 static volatile float last_pwr_peak = 0.0f;
 static volatile float last_swr      = 0.0f;
+static volatile float last_alc      = 0.0f;
 static volatile bool  have_last_tx  = false;
 
 static uint64_t prev_ui_update = 0;
@@ -81,6 +82,7 @@ static void tx_cb(void * s, lv_msg_t * msg) {
 
     last_pwr_peak = 0.0f;
     last_swr      = 0.0f;
+    last_alc      = 0.0f;
 
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
 }
@@ -222,6 +224,7 @@ void tx_info_update(float p, float s, float a) {
     if (pwr > last_pwr_peak) {
         last_pwr_peak = pwr;
         last_swr      = vswr;
+        last_alc      = alc;
         if (pwr > 0.05f) {
             have_last_tx = true;
         }
@@ -231,10 +234,12 @@ void tx_info_update(float p, float s, float a) {
     scheduler_put_noargs(update_tx_info);
 }
 
-bool tx_info_get_summary(float *pwr_p, float *vswr_p) {
+bool tx_info_get_summary(float *pwr_p, float *vswr_p, float *alc_p) {
     if (!have_last_tx) {
         return false;
     }
+    if (alc_p)
+        *alc_p = last_alc;
     if (pwr_p)
         *pwr_p = last_pwr_peak;
     if (vswr_p)

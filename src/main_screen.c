@@ -270,6 +270,10 @@ void main_screen_action(press_action_t action) {
             voice_decoder_read_last();
             break;
 
+        case ACTION_VOICE_TIME:
+            voice_say_time();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;

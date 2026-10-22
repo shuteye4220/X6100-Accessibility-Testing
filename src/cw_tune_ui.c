@@ -79,7 +79,27 @@ void cw_tune_init(lv_obj_t *parent)
     subject_subscribe_delayed_and_notify((Subject*)cfg.cw.tune(), update_visibility, NULL);
 }
 
+/* For cw_tune_get_offset(): written on the audio thread. */
+static float    last_offset_hz;
+static uint32_t last_offset_tick;
+static bool     have_offset = false;
+
+bool cw_tune_get_offset(float *hz) {
+    if (!__atomic_load_n(&have_offset, __ATOMIC_ACQUIRE) ||
+        lv_tick_elaps(__atomic_load_n(&last_offset_tick, __ATOMIC_RELAXED)) > 2000) {
+        return false;
+    }
+    if (hz) {
+        __atomic_load(&last_offset_hz, hz, __ATOMIC_RELAXED);
+    }
+    return true;
+}
+
 void cw_tune_set_freq(float hz) {
+    __atomic_store(&last_offset_hz, &hz, __ATOMIC_RELAXED);
+    __atomic_store_n(&last_offset_tick, lv_tick_get(), __ATOMIC_RELAXED);
+    __atomic_store_n(&have_offset, true, __ATOMIC_RELEASE);
+
     int8_t new_id = roundf(hz / BLOCK_HZ);
     if (LV_ABS(new_id) <= 1) {
         active_color = color_good;

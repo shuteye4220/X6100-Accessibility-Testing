@@ -29,11 +29,14 @@ extern "C" {
 #include "meter.h"
 #include "tx_info.h"
 #include "radio.h"
+#include "cw_tune_ui.h"
 }
 
 
 #include <atomic>
 #include <cctype>
+#include <cmath>
+#include <ctime>
 #include <memory>
 #include <stdexcept>
 #include <iostream>
@@ -609,15 +612,53 @@ void voice_say_meter() {
     std::string text = voice::s_meter_text(meter_get_db()) + ". ";
     float       pwr = 0.0f, swr = 0.0f;
 
-    if (tx_info_get_summary(&pwr, &swr)) {
+    float alc = 0.0f;
+
+    /* CW: how far the received tone is from yours (the tuning aid). */
+    x6100_mode_t mode = (x6100_mode_t)cfg.cur.mode()->get();
+    float        offset;
+
+    if ((mode == x6100_mode_cw || mode == x6100_mode_cwr) && cw_tune_get_offset(&offset)) {
+        int hz = (int)lroundf(offset / 10.0f) * 10;
+
+        if (hz == 0) {
+            text += "CW signal on your tone. ";
+        } else {
+            text += "CW signal " + std::to_string(hz < 0 ? -hz : hz) + " hertz " + (hz > 0 ? "above" : "below") +
+                    " your tone. ";
+        }
+    }
+
+    if (tx_info_get_summary(&pwr, &swr, &alc)) {
         /* The SWR meter stops at 5. */
         std::string swr_text = swr >= 4.95f ? "5 or more" : voice::number_text(swr < 1.0f ? 1.0f : swr, 1);
 
-        text += "Last transmit, power " + voice::number_text(pwr, 1) + " watts, S W R " + swr_text + ".";
+        text += "Last transmit, power " + voice::number_text(pwr, 1) + " watts, S W R " + swr_text + ", A L C " +
+                voice::number_text(alc, 1) + ".";
     } else {
         text += "No transmission yet.";
     }
 
+    say_on_demand(text);
+}
+
+void voice_say_time() {
+    static const char *days[]   = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    static const char *months[] = {"January", "February", "March",     "April",   "May",      "June",
+                                   "July",    "August",   "September", "October", "November", "December"};
+
+    /* As the clock on screen shows it (the radio's own clock). */
+    time_t    now = time(NULL);
+    struct tm t;
+
+    if (!localtime_r(&now, &t)) {
+        say_on_demand("Time unknown.");
+        return;
+    }
+
+    char text[96];
+    snprintf(text, sizeof(text), "%02d %02d, %s %d %s %d.", t.tm_hour, t.tm_min, days[t.tm_wday], t.tm_mday,
+             months[t.tm_mon], t.tm_year + 1900);
     say_on_demand(text);
 }
 

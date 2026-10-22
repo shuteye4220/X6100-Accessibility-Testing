@@ -54,6 +54,9 @@ bool voice_is_busy();
 void voice_say_status();
 void voice_say_meter();
 
+/* The radio's clock and date, as on screen. */
+void voice_say_time();
+
 /* An on-screen pop-up message (msg.c) as it is shown. Spoken only if no
  * announcement was asked for around the time it was made (the code that
  * made it already speaks), not while transmitting, and not a countdown or
