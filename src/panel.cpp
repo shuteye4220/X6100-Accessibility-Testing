@@ -178,6 +178,10 @@ void panel_clear() {
     }
 }
 
+bool panel_is_shown() {
+    return obj && !lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
+
 void panel_update_visibility(bool clear) {
     x6100_mode_t    mode = (x6100_mode_t)cfg.cur.mode()->get();
     bool            on = false;

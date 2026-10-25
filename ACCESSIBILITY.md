@@ -26,6 +26,7 @@ These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mi
 - **Speak keys**: the current page's name and what each function key does - handy in windows such as Settings or FT8.
 - **Read decoded**: the last few hundred characters received by the RTTY or CW decoder.
 - **Speak time**: the radio's clock and date.
+- **Speak here**: whatever matters where you are, so one key does for most things. In the FT8 window, the selected message; in the GPS window, the summary; in any other window (Settings, Wi-Fi...), the item you are on and its value; with RTTY or the CW decoder showing, the last text received; anywhere else, the status.
 
 ## Also spoken
 
@@ -52,6 +53,7 @@ Reading received text (RTTY, and the text modes to come) with a review cursor - 
 
 Readouts and settings:
 
+- **Voice key + Space**: speak here (as above)
 - **Voice key + S / M / T / B / K**: status, meters, time, battery, function keys
 - **Voice key + E**: typing echo - off, characters, words, characters and words
 - **Voice key + A**: reading received text aloud - off, text modes, all including CW

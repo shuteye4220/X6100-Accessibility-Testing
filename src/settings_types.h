@@ -55,6 +55,7 @@ typedef enum {
     ACTION_VOICE_KEYS    = 202, /* what F1-F5 do on the current page */
     ACTION_VOICE_DECODED = 203, /* the last decoded RTTY/CW/text */
     ACTION_VOICE_TIME    = 204, /* the radio's clock and date */
+    ACTION_VOICE_HERE    = 205, /* what matters where you are: see main_screen.c */
 } press_action_t;
 
 typedef enum {

@@ -8,6 +8,7 @@
 
 #include "dialog.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "styles.h"
@@ -267,6 +268,42 @@ void dialog_item_voice(dialog_t *dialog, lv_obj_t *obj, const char *name) {
     // See dropdown_scroll_voice_cb() - dropdown needs its own separate
     // listener since VALUE_CHANGED never fires while browsing its list.
     lv_obj_add_event_cb(obj, dropdown_scroll_voice_cb, LV_EVENT_KEY, (void *)name);
+}
+
+bool dialog_say_focused(void) {
+    if (!dialog_is_running()) {
+        return false;
+    }
+
+    lv_obj_t *obj = lv_group_get_focused(keyboard_group);
+
+    if (!obj) {
+        return false;
+    }
+
+    const char *name = (const char *)lv_obj_get_event_user_data(obj, focus_voice_cb);
+
+    if (!name) {
+        return false;
+    }
+
+    char text[128];
+
+    if (lv_obj_check_type(obj, &lv_switch_class)) {
+        snprintf(text, sizeof(text), "%s is %s", name, lv_obj_has_state(obj, LV_STATE_CHECKED) ? "on" : "off");
+    } else if (lv_obj_check_type(obj, &lv_dropdown_class)) {
+        char buf[64];
+        lv_dropdown_get_selected_str(obj, buf, sizeof(buf));
+        snprintf(text, sizeof(text), "%s, %s", name, buf);
+    } else if (lv_obj_check_type(obj, &lv_spinbox_class)) {
+        snprintf(text, sizeof(text), "%s, %i", name, (int)lv_spinbox_get_value(obj));
+    } else if (lv_obj_check_type(obj, &lv_slider_class)) {
+        snprintf(text, sizeof(text), "%s, %i", name, (int)lv_slider_get_value(obj));
+    } else {
+        snprintf(text, sizeof(text), "%s", name);
+    }
+    voice_say_requested(text);
+    return true;
 }
 
 void dialog_rotary(int32_t diff) {

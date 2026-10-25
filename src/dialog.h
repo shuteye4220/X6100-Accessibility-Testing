@@ -48,6 +48,9 @@ bool dialog_type_is_run(dialog_t *dialog);
 lv_obj_t * dialog_init(lv_obj_t *parent);
 void dialog_item(dialog_t *dialog, lv_obj_t *obj);
 void dialog_item_voice(dialog_t *dialog, lv_obj_t *obj, const char *name);
+/* A window is open and its focused item was added with dialog_item_voice():
+ * speaks that item's name and value, as on focus. False if not. */
+bool dialog_say_focused(void);
 
 void dialog_rotary(int32_t diff);
 

@@ -17,6 +17,7 @@
 
 extern "C" {
 #include "clock.h"
+#include "main_screen.h"
 #include "keyboard.h"
 #include "lvgl/lvgl.h"
 }
@@ -59,7 +60,7 @@ static const char *help_text =
     "C, W or L, the current character, word or line. "
     "Enter, read from here to the end. "
     "R, the last text received. "
-    "S, status. M, meters. T, time. B, battery. K, function keys. "
+    "Space, what matters here. S, status. M, meters. T, time. B, battery. K, function keys. "
     "E, typing echo. A, reading received text aloud. "
     "H, this help. "
     "Tap Control to stop speech. Double tap Caps Lock for caps lock.";
@@ -117,6 +118,7 @@ static bool command(uint16_t code, bool repeat) {
         case KEY_ENTER:
         case KEY_KPENTER: say(r.read_to_end()); break;
         case KEY_R:     voice_decoder_read_last(); break;
+        case KEY_SPACE: main_screen_action(ACTION_VOICE_HERE); break;
         case KEY_S:     voice_say_status(); break;
         case KEY_M:     voice_say_meter(); break;
         case KEY_T:     voice_say_time(); break;

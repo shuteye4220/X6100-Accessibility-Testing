@@ -24,6 +24,8 @@ void panel_set_height(lv_coord_t h);
 void panel_hide();
 void panel_clear();
 void panel_update_visibility(bool clear);
+/* The decoder text panel is on screen (RTTY, or the CW decoder). */
+bool panel_is_shown();
 void panel_add_text(const char * text);
 void panel_set_info(const char * text);
 

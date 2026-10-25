@@ -327,19 +327,8 @@ static void cell_press_cb(lv_event_t *e) {
  * ear the same way the Wi-Fi AP list is - only when the selected row
  * actually changes, not on every redraw/refresh, to avoid repeating the
  * same row over and over. */
-static void cell_selected_cb(lv_event_t *e) {
-    lv_obj_t *obj = lv_event_get_target(e);
-    uint16_t  row, col;
-    lv_table_get_selected_cell(obj, &row, &col);
-    (void)col;
-
-    if (row == LV_TABLE_CELL_NONE) {
-        s_last_spoken_row = LV_TABLE_CELL_NONE;
-        return;
-    }
-    if (row == s_last_spoken_row) return;
-    s_last_spoken_row = row;
-
+/* Speaks a row as the list shows it. */
+static void say_row(uint16_t row) {
     cell_data_t *cd = row_cell(row);
     if (!cd) return;
 
@@ -372,6 +361,33 @@ static void cell_selected_cb(lv_event_t *e) {
         voice_say_text_fmt("%s", cd->text);
         break;
     }
+}
+
+static void cell_selected_cb(lv_event_t *e) {
+    lv_obj_t *obj = lv_event_get_target(e);
+    uint16_t  row, col;
+    lv_table_get_selected_cell(obj, &row, &col);
+    (void)col;
+
+    if (row == LV_TABLE_CELL_NONE) {
+        s_last_spoken_row = LV_TABLE_CELL_NONE;
+        return;
+    }
+    if (row == s_last_spoken_row) return;
+    s_last_spoken_row = row;
+
+    say_row(row);
+}
+
+bool table_view_say_selected(void) {
+    uint16_t row, col;
+
+    if (!s_table) return false;
+    lv_table_get_selected_cell(s_table, &row, &col);
+    if (row == LV_TABLE_CELL_NONE || !row_cell(row)) return false;
+
+    say_row(row);
+    return true;
 }
 
 static void key_cb(lv_event_t *e) {

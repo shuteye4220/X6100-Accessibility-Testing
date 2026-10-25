@@ -312,11 +312,15 @@ static void row_text(int r, char *out, size_t n) {
     }
 }
 
-static void summary_btn_cb(button_data_t *btn) {
+void dialog_gps_say_summary(void) {
     char text[256];
 
     summary_text(text, sizeof(text));
     voice_say_requested(text);
+}
+
+static void summary_btn_cb(button_data_t *btn) {
+    dialog_gps_say_summary();
 }
 
 static void grid_btn_cb(button_data_t *btn) {

@@ -12,3 +12,6 @@
 
 extern dialog_t *dialog_gps;
 
+/* Speaks the fix, grid, satellites and time (the Summary key). */
+void dialog_gps_say_summary(void);
+

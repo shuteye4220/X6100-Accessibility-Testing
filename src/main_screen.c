@@ -57,6 +57,7 @@
 #include "freq_info.h"
 #include "lock_manager.h"
 #include "voice_decoder.h"
+#include "ft8_ui/table_view.h"
 
 #include <unistd.h>
 #include <stdint.h>
@@ -148,6 +149,32 @@ static void next_freq_step(bool up) {
     uint16_t new_step = cfg_mode_change_freq_step(up);
     msg_update_text_fmt("Freq step: %i Hz", new_step);
     voice_say_text_fmt("Frequency step %i herz", new_step);
+}
+
+/* "Speak here": one key that reads what matters where you are. The first
+ * of these that applies:
+ *   FT8 window         the selected message
+ *   GPS window         the summary: fix, grid, satellites, time
+ *   any other window   the focused item and its value (Settings...)
+ *   decoder text shown the last text received (RTTY, CW decoder)
+ *   otherwise          status: VFO, band, frequency, mode...
+ */
+static void say_here() {
+    if (dialog_type_is_run(dialog_ft8) && table_view_say_selected()) {
+        return;
+    }
+    if (dialog_type_is_run(dialog_gps)) {
+        dialog_gps_say_summary();
+        return;
+    }
+    if (dialog_say_focused()) {
+        return;
+    }
+    if (panel_is_shown()) {
+        voice_decoder_read_last();
+        return;
+    }
+    voice_say_status();
 }
 
 static void apps_disable() {
@@ -272,6 +299,10 @@ void main_screen_action(press_action_t action) {
 
         case ACTION_VOICE_TIME:
             voice_say_time();
+            break;
+
+        case ACTION_VOICE_HERE:
+            say_here();
             break;
 
         case ACTION_STEP_UP:

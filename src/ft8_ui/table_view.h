@@ -98,6 +98,9 @@ void table_view_push_ui(const cell_data_t *src);
  * returns; table_view_push_ui() takes its own snapshot into the ring pool. */
 void table_view_add_msg_cb(void *data);
 
+/* Speaks the selected message again. False if none is selected. */
+bool table_view_say_selected(void);
+
 #ifdef __cplusplus
 }
 #endif
