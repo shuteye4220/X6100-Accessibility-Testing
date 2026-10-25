@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# zram: compressed swap in memory. When memory runs short, pages that
+# aren't being used are compressed and kept in RAM, instead of a program
+# being stopped for want of memory. Nothing is written to the card.
+#
+# Sized at half the RAM - what it can hold before compression; it takes
+# a third to a quarter of that once compressed.
+#
+# vm.swappiness stays as S03tune_cache sets it (1): swap is used only
+# when memory is nearly full.
+
+DEV=zram0
+SYS=/sys/block/$DEV
+
+start() {
+    [ -d $SYS ] || modprobe zram 2>/dev/null
+    if [ ! -d $SYS ]; then
+        echo "zram: not in this kernel"
+        return 0
+    fi
+    grep -q "^/dev/$DEV " /proc/swaps && return 0
+
+    total=0
+    while read -r key value unit; do
+        if [ "$key" = "MemTotal:" ]; then
+            total=$value
+            break
+        fi
+    done < /proc/meminfo
+    [ "$total" -gt 0 ] || return 1
+
+    echo lz4 > $SYS/comp_algorithm 2>/dev/null
+    echo "$((total / 2))K" > $SYS/disksize || return 1
+    mkswap /dev/$DEV > /dev/null && swapon /dev/$DEV && echo "zram: $((total / 2048)) MB of swap"
+}
+
+stop() {
+    swapoff /dev/$DEV 2>/dev/null
+    echo 1 > $SYS/reset 2>/dev/null
+}
+
+case "$1" in
+    start)
+        start;;
+    stop)
+        stop;;
+    restart)
+        stop
+        start;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac

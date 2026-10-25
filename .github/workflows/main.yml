@@ -75,6 +75,17 @@ jobs:
         BR2_PACKAGE_RHVOICE_LYUBOV=y
         EOF
 
+    # zram: compressed swap in memory (system/zram). Kernel options, and
+    # a start-up script that makes the swap at boot.
+    - name: zram compressed swap
+      run: |
+        B=AetherX6100Buildroot/br2_external/board/X6100/linux
+        echo >> $B/sun8i-r16-x6100_defconfig
+        cat x6100_gui/system/zram/linux.config >> $B/sun8i-r16-x6100_defconfig
+        install -D -m 755 x6100_gui/system/zram/S05zram $B/rootfs-overlay/etc/init.d/S05zram
+        grep -q "^CONFIG_ZRAM=y$" $B/sun8i-r16-x6100_defconfig
+        test -x $B/rootfs-overlay/etc/init.d/S05zram
+
     # Ccache
     - name: Ccache cache files
       uses: actions/cache@v4
