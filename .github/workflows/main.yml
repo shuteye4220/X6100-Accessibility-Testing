@@ -8,6 +8,7 @@ on:
     # Fork test builds: a push to this branch builds and releases too.
     branches:
       - accessibility-additions-build
+      - espeak-build
 
 jobs:
   build:
@@ -89,6 +90,31 @@ jobs:
         grep -q "^CONFIG_ZRAM=y$" $B/sun8i-r16-x6100_defconfig
         test -x $B/rootfs-overlay/etc/init.d/S05zram
 
+    # The speech engine: eSpeak (voice_synth_espeak.cpp) in place of
+    # RHVoice. Buildroot's espeak package only installs onto the target,
+    # so it also gets a staging install, for x6100-gui to build against.
+    - name: Speech engine eSpeak
+      run: |
+        BR=AetherX6100Buildroot
+        echo "BR2_PACKAGE_ESPEAK=y" >> $BR/br2_external/configs/X6100_defconfig
+
+        mk=$BR/buildroot/package/espeak/espeak.mk
+        sed -i '/^\$(eval \$(generic-package))$/d' $mk
+        printf '%s\n' '' 'ESPEAK_INSTALL_STAGING = YES' 'define ESPEAK_INSTALL_STAGING_CMDS' \
+          '	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/src $(TARGET_CONFIGURE_OPTS) \' \
+          '		AUDIO="$(ESPEAK_AUDIO_BACKEND)" DESTDIR="$(STAGING_DIR)" install' \
+          'endef' '' '$(eval $(generic-package))' >> $mk
+
+        gm=$BR/br2_external/package/x6100-gui/x6100_gui.mk
+        sed -i 's/^\(X6100_GUI_DEPENDENCIES = .*\)$/\1 espeak\nX6100_GUI_CONF_OPTS += -DX6100_TTS=espeak/' $gm
+
+        # Stop now, not two hours on, if any of that didn't take.
+        grep -q "^ESPEAK_INSTALL_STAGING = YES" $mk
+        grep -q '^\$(eval \$(generic-package))$' $mk
+        grep -q "^X6100_GUI_DEPENDENCIES = .* espeak$" $gm
+        grep -q "^X6100_GUI_CONF_OPTS += -DX6100_TTS=espeak$" $gm
+        tail -n 8 $mk; grep "^X6100_GUI_\(DEPENDENCIES\|CONF_OPTS\)" $gm
+
     # Ccache
     - name: Ccache cache files
       uses: actions/cache@v4
@@ -156,8 +182,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/heads/')
       with:
-        tag_name: additions-${{ github.run_number }}
-        name: Accessibility additions test build ${{ github.run_number }}
+        tag_name: ${{ github.ref_name == 'espeak-build' && 'espeak' || 'additions' }}-${{ github.run_number }}
+        name: ${{ github.ref_name == 'espeak-build' && 'eSpeak' || 'Accessibility additions' }} test build ${{ github.run_number }}
         target_commitish: ${{ github.sha }}
         prerelease: true
         files: AetherX6100Buildroot/build/images/sdcard.img.zip
