@@ -11,6 +11,7 @@
 #include "util.h"
 #include "display.h"
 #include "voice_text.h"
+#include "voice_synth.h"
 #include "lock_manager.h"
 
 /* C++ headers: before the extern "C" block. */
@@ -44,37 +45,8 @@ extern "C" {
 #include <iterator>
 #include <algorithm>
 
-#include <RHVoice/core/engine.hpp>
-#include <RHVoice/core/document.hpp>
-#include <RHVoice/core/client.hpp>
-#include <RHVoice/audio.hpp>
-
-using namespace RHVoice;
-
-class audio_player: public client {
-public:
-    explicit audio_player(const char *device);
-
-    bool play_speech(const short* samples_buf, std::size_t count);
-    void finish();
-
-private:
-    audio::playback_stream stream;
-};
-
-/* device: a Bluetooth sink while listening is on (bt_audio.c), NULL for
- * the default output. */
-audio_player::audio_player(const char *device) {
-    stream.set_sample_rate(24000);
-    stream.set_buffer_size(512);
-    if (device) {
-        stream.set_device(device);
-    }
-    stream.open();
-}
-
 // Set by voice_stop_current() to cooperatively abort an in-progress
-// announcement - checked here (per audio chunk RHVoice hands us) and in
+// announcement - checked by the synthesizer (per audio chunk) and in
 // say_thread()'s pre-speech delay wait. This replaces an earlier
 // pthread_cancel()-based approach: cancelling mid-synthesize() risked
 // skipping the audio_set_play_mode(AUDIO_PLAY_OFF) call in say_thread(),
@@ -83,27 +55,6 @@ audio_player::audio_player(const char *device) {
 // thread always finish its own cleanup on its own terms, just sooner.
 static std::atomic<bool> stop_requested{false};
 
-bool audio_player::play_speech(const short* buf, std::size_t count) {
-    if (stop_requested) {
-        return false;
-    }
-
-    try {
-        stream.write(buf, count);
-        return true;
-    } catch (...) {
-        stream.close();
-        return false;
-    }
-}
-
-void audio_player::finish() {
-    if (stream.is_open())
-        stream.drain();
-}
-
-static std::shared_ptr<engine>      eng(new engine);
-static voice_profile                profile;
 static char                         buf[512];
 static char                         prev[512];
 static pthread_t                    thread;
@@ -118,15 +69,6 @@ static bool                         sure = false;
 // its name stays the same) - see voice_say_prompted_fmt().
 static size_t                       prompt_len = 0;
 
-voice_item_t voice_item[VOICES_NUM] = {
-    {.name = "lyubov",      .label = "Lyubov (En)",  .welcome = "Hello. This is voice Lyubov" },
-    {.name = "slt",         .label = "SLT (En)",     .welcome = "Hello. This is voice S L T"  },
-    {.name = "alan",        .label = "Alan (En)",    .welcome = "Hello. This is voice Alan"   },
-    {.name = "evgeniy-eng", .label = "Evgeniy (En)", .welcome = "Hello. This is voice Evgeniy"},
-    {.name = "bdl",         .label = "BDL (En)",     .welcome = "Hello. This is voice B D L"  },
-    {.name = "clb",         .label = "CLB (En)",     .welcome = "Hello. This is voice C L B"  },
-};
-
 static void * say_thread(void *arg) {
     // Poll rather than a single usleep(delay) so an interrupting
     // announcement (see voice_stop_current()) can cut a still-waiting
@@ -140,8 +82,6 @@ static void * say_thread(void *arg) {
     }
 
     run = true;
-
-    profile = eng->create_voice_profile(voice_item[cfg.voice.lang()->get()].name);
 
     char *ptr = buf;
 
@@ -170,26 +110,13 @@ static void * say_thread(void *arg) {
     char bt_sink[96];
     bool bt = bt_audio_playback_begin(bt_sink, sizeof(bt_sink));
 
-    {
-        audio_player                    player(bt ? bt_sink : nullptr);
-        std::istringstream              text{ptr};
-        std::istreambuf_iterator<char>  text_start{text};
-        std::istreambuf_iterator<char>  text_end;
-        std::unique_ptr<document>       doc = document::create_from_plain_text(eng, text_start, text_end, content_text, profile);
-
-        doc->speech_settings.relative.rate = cfg.voice.rate()->get() / 100.0;
-        doc->speech_settings.relative.pitch = cfg.voice.pitch()->get() / 100.0;
-        doc->speech_settings.relative.volume = cfg.voice.volume()->get() / 100.0;
-        doc->set_owner(player);
-
-        if (!bt) {
-            audio_set_play_mode(AUDIO_PLAY_ON);
-        }
-        doc->synthesize();
-        player.finish();
-        if (!bt) {
-            audio_set_play_mode(AUDIO_PLAY_OFF);
-        }
+    if (!bt) {
+        audio_set_play_mode(AUDIO_PLAY_ON);
+    }
+    /* The engine chosen at build time (voice_synth.h). */
+    voice_synth_speak(ptr, bt ? bt_sink : nullptr, stop_requested);
+    if (!bt) {
+        audio_set_play_mode(AUDIO_PLAY_OFF);
     }
     if (bt) {
         bt_audio_playback_end();
@@ -521,7 +448,14 @@ void voice_say_text(const char *prompt, const char *x) {
 }
 
 void voice_say_lang() {
-    voice_delay_say_text_fmt(voice_item[cfg.voice.lang()->get()].welcome);
+    const voice_synth_choice_t *voices;
+    size_t                      n = voice_synth_voices(&voices);
+    int32_t                     i = voice_synth_rate_wpm() ? cfg.voice.espeak_voice()->get() : cfg.voice.lang()->get();
+
+    if (i < 0 || (size_t)i >= n) {
+        i = 0;
+    }
+    voice_delay_say_text_fmt("Hello. This is %s voice %s", voice_synth_engine(), voices[i].label);
 }
 
 /***** On-demand readouts *****/

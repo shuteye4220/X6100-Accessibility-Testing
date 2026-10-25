@@ -3,6 +3,7 @@
 #include <string>
 
 #include "../voice.h"
+#include "../voice_synth.h"
 
 /***** VOICE *****/
 
@@ -22,9 +23,16 @@ static void make_voice(SettingsPage &page) {
     /* * */
 
     page.row++;
-    page.label("Voice rate, pitch, volume");
+    /* RHVoice: rate in percent. eSpeak: in words per minute, 80 to 450. */
+    bool wpm = voice_synth_rate_wpm();
 
-    obj = page.spinbox_int(page.grid, *cfg.voice.rate(), 50, 150, "Voice rate");
+    page.label(wpm ? "Rate (wpm), pitch, volume" : "Voice rate, pitch, volume");
+
+    if (wpm) {
+        obj = page.spinbox_int(page.grid, *cfg.voice.espeak_rate(), 80, 450, "Voice rate, words per minute");
+    } else {
+        obj = page.spinbox_int(page.grid, *cfg.voice.rate(), 50, 150, "Voice rate");
+    }
 
     lv_spinbox_set_digit_format(obj, 3, 0);
     lv_spinbox_set_digit_step_direction(obj, LV_DIR_LEFT);
@@ -51,22 +59,40 @@ static void make_voice(SettingsPage &page) {
     page.row++;
 }
 
-static void make_voice_lang(SettingsPage &page) {
-    page.label("Voice type");
+/* A dropdown of the engine's choices (voice_synth.h). */
+static void make_choice(SettingsPage &page, const char *label, ParamInt &param, const voice_synth_choice_t *list,
+                        size_t n) {
+    page.label(label);
 
-    std::string options = "";
-    for (auto &&item : voice_item) {
-        options += " " + std::string(item.label) + " \n";
+    std::string options;
+    for (size_t i = 0; i < n; i++) {
+        options += (i ? "\n " : " ") + std::string(list[i].label) + " ";
     }
-    options[options.size() - 1] = '\0';
 
-    lv_obj_t *obj = page.dropdown_int(page.grid, *cfg.voice.lang(), options.c_str(), "Voice type");
+    lv_obj_t *obj = page.dropdown_int(page.grid, param, options.c_str(), label);
 
     lv_obj_set_size(obj, SMALL_6, 56);
     lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, page.row, 1);
     lv_obj_center(obj);
 
     page.row++;
+}
+
+static void make_voice_lang(SettingsPage &page) {
+    const voice_synth_choice_t *list;
+    size_t                      n = voice_synth_voices(&list);
+
+    if (voice_synth_rate_wpm()) {
+        /* eSpeak: a voice (accent), and a person (male, female...). */
+        make_choice(page, "Voice type", *cfg.voice.espeak_voice(), list, n);
+
+        n = voice_synth_persons(&list);
+        if (n) {
+            make_choice(page, "Person", *cfg.voice.espeak_person(), list, n);
+        }
+    } else {
+        make_choice(page, "Voice type", *cfg.voice.lang(), list, n);
+    }
 }
 
 // Screen-reader style behavior (see voice.cpp: voice_enable(),

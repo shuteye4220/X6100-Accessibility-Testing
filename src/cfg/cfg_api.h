@@ -236,6 +236,9 @@ typedef struct {
     ParamInt *(*popups)(void); /* p_voice_popups */
     ParamInt *(*decoded)(void); /* p_voice_decoded */
     ParamInt *(*echo)(void); /* p_voice_echo */
+    ParamInt *(*espeak_voice)(void); /* p_voice_espeak_voice */
+    ParamInt *(*espeak_person)(void); /* p_voice_espeak_person */
+    ParamInt *(*espeak_rate)(void); /* p_voice_espeak_rate */
 } cfg_voice_refs_t;
 
 typedef struct {

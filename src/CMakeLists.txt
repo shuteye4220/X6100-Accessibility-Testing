@@ -70,10 +70,33 @@ Threads::Threads
 lvgl lvgl::drivers
 aether_x6100_control
 liquid
-RHVoice RHVoice_core RHVoice_audio
 ft8
 cw_decoder
 )
+
+# Speech engine (voice_synth.h): rhvoice (default) or espeak - classic
+# eSpeak 1.48 (Buildroot's BR2_PACKAGE_ESPEAK) or eSpeak NG.
+set(X6100_TTS "rhvoice" CACHE STRING "Speech engine: rhvoice or espeak")
+set_property(CACHE X6100_TTS PROPERTY STRINGS rhvoice espeak)
+
+if(X6100_TTS STREQUAL "espeak")
+    # Classic eSpeak if there, else eSpeak NG: their headers differ in path.
+    find_library(ESPEAK_LIB NAMES espeak)
+    if(ESPEAK_LIB)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE ESPEAK_CLASSIC=1)
+    else()
+        find_library(ESPEAK_LIB NAMES espeak-ng REQUIRED)
+    endif()
+    target_sources(${PROJECT_NAME} PRIVATE voice_synth_espeak.cpp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${ESPEAK_LIB})
+    message(STATUS "Speech engine: eSpeak (${ESPEAK_LIB})")
+elseif(X6100_TTS STREQUAL "rhvoice")
+    target_sources(${PROJECT_NAME} PRIVATE voice_synth_rhvoice.cpp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE RHVoice RHVoice_core RHVoice_audio)
+    message(STATUS "Speech engine: RHVoice")
+else()
+    message(FATAL_ERROR "X6100_TTS must be rhvoice or espeak, not ${X6100_TTS}")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(${PROJECT_NAME} PRIVATE -g -fno-omit-frame-pointer -fasynchronous-unwind-tables)

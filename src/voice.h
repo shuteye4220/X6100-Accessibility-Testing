@@ -18,14 +18,6 @@ extern "C" {
 #include <stdint.h>
 #endif
 
-typedef struct {
-    const char *name;
-    const char *label;
-    const char *welcome;
-} voice_item_t;
-
-extern voice_item_t voice_item[VOICES_NUM];
-
 void voice_sure();
 void voice_change_mode();
 

@@ -169,6 +169,9 @@ static ParamInt *cfg_voice_keys(void) { return param_ref<ParamInt>(cfg_instance(
 static ParamInt *cfg_voice_popups(void) { return param_ref<ParamInt>(cfg_instance().p_voice_popups); }
 static ParamInt *cfg_voice_decoded(void) { return param_ref<ParamInt>(cfg_instance().p_voice_decoded); }
 static ParamInt *cfg_voice_echo(void) { return param_ref<ParamInt>(cfg_instance().p_voice_echo); }
+static ParamInt *cfg_voice_espeak_voice(void) { return param_ref<ParamInt>(cfg_instance().p_voice_espeak_voice); }
+static ParamInt *cfg_voice_espeak_person(void) { return param_ref<ParamInt>(cfg_instance().p_voice_espeak_person); }
+static ParamInt *cfg_voice_espeak_rate(void) { return param_ref<ParamInt>(cfg_instance().p_voice_espeak_rate); }
 static ParamFloat *cfg_play_gain_db(void) { return param_ref<ParamFloat>(cfg_instance().p_play_gain_db); }
 static ParamFloat *cfg_rec_gain_db(void) { return param_ref<ParamFloat>(cfg_instance().p_rec_gain_db); }
 static ParamInt *cfg_rtty_center(void) { return param_ref<ParamInt>(cfg_instance().p_rtty_center); }
@@ -425,6 +428,9 @@ extern "C" const cfg_refs_t cfg = {
         .popups = &cfg_voice_popups,
         .decoded = &cfg_voice_decoded,
         .echo = &cfg_voice_echo,
+        .espeak_voice = &cfg_voice_espeak_voice,
+        .espeak_person = &cfg_voice_espeak_person,
+        .espeak_rate = &cfg_voice_espeak_rate,
     },
     .audio = {
         .play_gain_db = &cfg_play_gain_db,

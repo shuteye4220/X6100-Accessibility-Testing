@@ -317,6 +317,14 @@ class SettingsManager {
     // Typing echo in text fields: 0 none, 1 characters, 2 words, 3 both
     Parameter<int32_t> p_voice_echo{"voice_echo", 1, 0, 3,
         StorageType::GLOBAL, pending_writes_, &global_params_};
+    // eSpeak builds (voice_synth_espeak.cpp): voice and person (variant)
+    // as indexes into its lists, rate in words per minute
+    Parameter<int32_t> p_voice_espeak_voice{"voice_espeak_voice", 1, 0, 31,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
+    Parameter<int32_t> p_voice_espeak_person{"voice_espeak_person", 0, 0, 31,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
+    Parameter<int32_t> p_voice_espeak_rate{"voice_espeak_rate", 175, 80, 450,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
 
     // Audio play/record gain (REAL in the DB, no scaling: matches legacy)
     Parameter<float> p_play_gain_db{"play_gain_db_f", 0.0f, {},
