@@ -53,6 +53,26 @@ std::string grid_text(const std::string &grid);
  * "45 degrees 25 point 3 minutes north". */
 std::string coord_text(double deg, bool latitude);
 
+/* Memory use, in kilobytes as /proc/meminfo has it. zram_* (compressed swap
+ * in RAM): what is stored there, and the memory that takes; 0 without it. */
+struct MemoryInfo {
+    long total_kb;
+    long available_kb;
+    long self_kb; /* this program (VmRSS) */
+    long swap_total_kb;
+    long swap_free_kb;
+    long zram_stored_kb;
+    long zram_used_kb;
+};
+
+/* A field of /proc/meminfo or /proc/<pid>/status ("MemAvailable"), in kB;
+ * -1 if it isn't there. */
+long meminfo_kb(const std::string &text, const char *key);
+
+/* "Memory, 312 megabytes free of 494. This program uses 85. Swap, 20
+ * megabytes used of 247, compressed into 7." */
+std::string memory_text(const MemoryInfo &m);
+
 } // namespace voice
 
 extern "C" {

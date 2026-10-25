@@ -70,6 +70,7 @@ static action_items_t long_action_items[] = {
     {.label = " Read decoded ",    .action = ACTION_VOICE_DECODED},
     {.label = " Speak time ",      .action = ACTION_VOICE_TIME  },
     {.label = " Speak here ",      .action = ACTION_VOICE_HERE  },
+    {.label = " Speak memory ",    .action = ACTION_VOICE_MEMORY},
     {.label = " APP RTTY ",        .action = ACTION_APP_RTTY    },
     {.label = " APP FT8 ",         .action = ACTION_APP_FT8     },
     {.label = " APP SWR Scan ",    .action = ACTION_APP_SWRSCAN },
@@ -157,6 +158,7 @@ static action_items_t hmic_action_items[] = {
     {.label = " Read decoded ",    .action = ACTION_VOICE_DECODED},
     {.label = " Speak time ",      .action = ACTION_VOICE_TIME  },
     {.label = " Speak here ",      .action = ACTION_VOICE_HERE  },
+    {.label = " Speak memory ",    .action = ACTION_VOICE_MEMORY},
     {.label = " NR toggle ",       .action = ACTION_NR_TOGGLE },
     {.label = " NB toggle ",       .action = ACTION_NB_TOGGLE },
     {.label = NULL,                .action = ACTION_NONE      }

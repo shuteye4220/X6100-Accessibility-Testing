@@ -11,6 +11,7 @@
 #include "voice_text.h"
 
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include <cstdio>
@@ -379,6 +380,74 @@ static size_t copy_out(const std::string &s, char *out, size_t n) {
     memcpy(out, s.data(), len);
     out[len] = '\0';
     return len;
+}
+
+long meminfo_kb(const std::string &text, const char *key) {
+    std::string k = std::string(key) + ":";
+    size_t      pos = 0;
+
+    while (pos < text.size()) {
+        size_t end = text.find('\n', pos);
+        if (end == std::string::npos) {
+            end = text.size();
+        }
+        if (text.compare(pos, k.size(), k) == 0) {
+            const char *p = text.c_str() + pos + k.size();
+            char       *q;
+            long        v = strtol(p, &q, 10);
+
+            return q == p ? -1 : v;
+        }
+        pos = end + 1;
+    }
+    return -1;
+}
+
+/* kB to whole megabytes, rounded; anything at all is at least 1. */
+static long mb(long kb) {
+    if (kb <= 0) {
+        return 0;
+    }
+    long m = (kb + 512) / 1024;
+    return m ? m : 1;
+}
+
+std::string memory_text(const MemoryInfo &m) {
+    char buf[96];
+    std::string out;
+
+    if (m.total_kb <= 0) {
+        return "Memory unknown.";
+    }
+    if (m.available_kb >= 0) {
+        snprintf(buf, sizeof(buf), "Memory, %ld megabytes free of %ld.", mb(m.available_kb), mb(m.total_kb));
+    } else {
+        snprintf(buf, sizeof(buf), "Memory, %ld megabytes.", mb(m.total_kb));
+    }
+    out = buf;
+
+    if (m.self_kb > 0) {
+        snprintf(buf, sizeof(buf), " This program uses %ld.", mb(m.self_kb));
+        out += buf;
+    }
+
+    if (m.swap_total_kb <= 0) {
+        return out + " No swap.";
+    }
+
+    long used = m.swap_total_kb - (m.swap_free_kb < 0 ? m.swap_total_kb : m.swap_free_kb);
+
+    if (used <= 0) {
+        snprintf(buf, sizeof(buf), " Swap, none used of %ld megabytes.", mb(m.swap_total_kb));
+        return out + buf;
+    }
+    snprintf(buf, sizeof(buf), " Swap, %ld megabytes used of %ld", mb(used), mb(m.swap_total_kb));
+    out += buf;
+    if (m.zram_stored_kb > 0 && m.zram_used_kb > 0) {
+        snprintf(buf, sizeof(buf), ", compressed into %ld", mb(m.zram_used_kb));
+        out += buf;
+    }
+    return out + ".";
 }
 
 } // namespace voice

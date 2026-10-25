@@ -106,6 +106,36 @@ TEST_CASE("decoded text spells callsigns and abbreviations", "[voice][text][deco
     CHECK(decoded_text("TEST de K1ABC") == "T E S T D E K 1 A B C");
 }
 
+TEST_CASE("memory use", "[voice][text][memory]") {
+    const std::string meminfo = "MemTotal:         505908 kB\nMemFree:           40000 kB\n"
+                                "MemAvailable:     319488 kB\nSwapTotal:        252928 kB\nSwapFree:         232448 kB\n";
+
+    CHECK(meminfo_kb(meminfo, "MemTotal") == 505908);
+    CHECK(meminfo_kb(meminfo, "MemAvailable") == 319488);
+    CHECK(meminfo_kb(meminfo, "SwapFree") == 232448);
+    CHECK(meminfo_kb(meminfo, "Mem") == -1);
+    CHECK(meminfo_kb(meminfo, "Cached") == -1);
+    CHECK(meminfo_kb("VmPeak:\t  90000 kB\nVmRSS:\t   87040 kB\n", "VmRSS") == 87040);
+
+    MemoryInfo m = {505908, 319488, 87040, 252928, 232448, 61440, 7168};
+    CHECK(memory_text(m) == "Memory, 312 megabytes free of 494. This program uses 85. "
+                            "Swap, 20 megabytes used of 247, compressed into 7.");
+    m.swap_free_kb = m.swap_total_kb;
+    CHECK(memory_text(m) == "Memory, 312 megabytes free of 494. This program uses 85. "
+                            "Swap, none used of 247 megabytes.");
+    m.swap_total_kb = 0;
+    m.self_kb       = -1;
+    CHECK(memory_text(m) == "Memory, 312 megabytes free of 494. No swap.");
+    m.available_kb = -1;
+    CHECK(memory_text(m) == "Memory, 494 megabytes. No swap.");
+    // A swap file, not zram: no "compressed".
+    m = {505908, 319488, 87040, 252928, 232448, 0, 0};
+    CHECK(memory_text(m) == "Memory, 312 megabytes free of 494. This program uses 85. "
+                            "Swap, 20 megabytes used of 247.");
+    m.total_kb = 0;
+    CHECK(memory_text(m) == "Memory unknown.");
+}
+
 TEST_CASE("the C helpers never overrun", "[voice][text]") {
     char buf[8];
 

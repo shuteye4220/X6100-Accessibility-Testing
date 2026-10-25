@@ -618,6 +618,36 @@ void voice_say_time() {
     say_on_demand(text);
 }
 
+static std::string read_file(const char *path) {
+    std::ifstream in(path);
+
+    return std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+}
+
+void voice_say_memory() {
+    std::string       meminfo = read_file("/proc/meminfo");
+    std::string       status  = read_file("/proc/self/status");
+    voice::MemoryInfo m;
+
+    m.total_kb      = voice::meminfo_kb(meminfo, "MemTotal");
+    m.available_kb  = voice::meminfo_kb(meminfo, "MemAvailable");
+    m.self_kb       = voice::meminfo_kb(status, "VmRSS");
+    m.swap_total_kb = voice::meminfo_kb(meminfo, "SwapTotal");
+    m.swap_free_kb  = voice::meminfo_kb(meminfo, "SwapFree");
+
+    /* zram: data stored (bytes), compressed, memory used - see
+     * Documentation/admin-guide/blockdev/zram.rst, mm_stat. */
+    long long stored = 0, compr = 0, used = 0;
+
+    if (sscanf(read_file("/sys/block/zram0/mm_stat").c_str(), "%lld %lld %lld", &stored, &compr, &used) != 3) {
+        stored = used = 0;
+    }
+    m.zram_stored_kb = (long)(stored / 1024);
+    m.zram_used_kb   = (long)(used / 1024);
+
+    say_on_demand(voice::memory_text(m));
+}
+
 /***** Pop-up messages *****/
 
 /* "#FFFFFF NR: On" -> "NR: On": LVGL recolor marks ("#RGB ", "#RRGGBB ",

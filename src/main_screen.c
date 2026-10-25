@@ -305,6 +305,10 @@ void main_screen_action(press_action_t action) {
             say_here();
             break;
 
+        case ACTION_VOICE_MEMORY:
+            voice_say_memory();
+            break;
+
         case ACTION_STEP_UP:
             next_freq_step(true);
             break;

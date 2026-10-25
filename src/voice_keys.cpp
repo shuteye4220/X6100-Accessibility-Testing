@@ -60,7 +60,7 @@ static const char *help_text =
     "C, W or L, the current character, word or line. "
     "Enter, read from here to the end. "
     "R, the last text received. "
-    "Space, what matters here. S, status. M, meters. T, time. B, battery. K, function keys. "
+    "Space, what matters here. S, status. M, meters. T, time. B, battery. U, memory. K, function keys. "
     "E, typing echo. A, reading received text aloud. "
     "H, this help. "
     "Tap Control to stop speech. Double tap Caps Lock for caps lock.";
@@ -122,6 +122,7 @@ static bool command(uint16_t code, bool repeat) {
         case KEY_S:     voice_say_status(); break;
         case KEY_M:     voice_say_meter(); break;
         case KEY_T:     voice_say_time(); break;
+        case KEY_U:     voice_say_memory(); break;
         case KEY_B:     clock_say_bat_info(); break;
         case KEY_K:     buttons_say_keys(); break;
         case KEY_E:     cycle_echo(); break;
