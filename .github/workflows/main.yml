@@ -66,6 +66,17 @@ jobs:
         sed -i "s,^X6100_GUI_SITE_METHOD = git,X6100_GUI_SITE_METHOD = local,g" AetherX6100Buildroot/br2_external/package/x6100-gui/x6100_gui.mk
         sed -i "s,^X6100_GUI_GIT_SUBMODULES,# X6100_GUI_GIT_SUBMODULES,g" AetherX6100Buildroot/br2_external/package/x6100-gui/x6100_gui.mk
 
+    # Test builds: the radio's web pages from the fork's accessibility
+    # branch (shuteye4220/x6100_webserver, wcag-conformance) in place of
+    # OpenX6100's v0.0.4.
+    - name: Web pages from the accessibility branch
+      run: |
+        mk=AetherX6100Buildroot/br2_external/package/x6100-webserver/x6100_webserver.mk
+        sed -i -e "s,^X6100_WEBSERVER_VERSION = .*,X6100_WEBSERVER_VERSION = e51fe62a22863042d971a22b0fe6fbaff8e2441a," \
+               -e "s,^X6100_WEBSERVER_SITE = .*,X6100_WEBSERVER_SITE = https://github.com/shuteye4220/x6100_webserver," $mk
+        grep -q "^X6100_WEBSERVER_VERSION = e51fe62a22863042d971a22b0fe6fbaff8e2441a$" $mk
+        grep -q "^X6100_WEBSERVER_SITE = https://github.com/shuteye4220/x6100_webserver$" $mk
+
     # The image only ships SLT by default even though voice.cpp already
     # supports switching to Lyubov/Alan/Evgeniy too - this actually enables
     # the voice data for the ones the app already knows about.
