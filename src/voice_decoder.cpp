@@ -70,12 +70,21 @@ static void try_flush(bool force) {
         return; /* try again on the next tick */
     }
 
-    std::string text = voice::decoded_text(pending);
+    /* Spelled out, text grows ("VE3XYZ" is "V E 3 X Y Z"): say as much
+     * as fits, ending at a space, and leave the rest for the next phrase,
+     * rather than have the newest text cut off. */
+    std::string prefix = skipped ? "skipped. " : "";
+    size_t      take   = pending.size();
+    std::string text   = voice::decoded_text(pending);
 
-    if (skipped) {
-        text = "skipped. " + text;
+    while (prefix.size() + text.size() > VOICE_TEXT_MAX && take > 1) {
+        size_t cut = pending.rfind(' ', take * 2 / 3);
+
+        take = (cut != std::string::npos && cut > 0) ? cut : take * 2 / 3;
+        text = voice::decoded_text(pending.substr(0, take));
     }
-    pending.clear();
+    text = prefix + text;
+    pending.erase(0, take);
     skipped = false;
 
     if (!text.empty()) {
@@ -132,6 +141,15 @@ void voice_decoder_read_last() {
     }
 
     std::string text = voice::decoded_text(last);
+
+    /* Spelled out it may not fit: keep the newest, from a word start. */
+    if (text.size() > VOICE_TEXT_MAX) {
+        text.erase(0, text.size() - VOICE_TEXT_MAX);
+        size_t sp = text.find(' ');
+        if (sp != std::string::npos && sp < 40) {
+            text.erase(0, sp + 1);
+        }
+    }
 
     voice_say_requested(text.empty() ? "Nothing received yet." : text.c_str());
 }

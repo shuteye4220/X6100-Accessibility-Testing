@@ -365,7 +365,9 @@ static void announce_changes(int prev_mode, const char *prev_grid) {
         voice_say_text_fmt("%s", text);
     } else if (!have_fix() && had_fix) {
         voice_say_text_fmt("GPS fix lost");
-    } else if (have_fix() && prev_grid[0] && strcmp(prev_grid, seen.grid) != 0) {
+    } else if (have_fix() && prev_grid[0] && strncmp(prev_grid, seen.grid, 6) != 0) {
+        /* The square, not the 8-character subsquare (about 500 m): GPS
+         * wander at a subsquare edge would repeat this standing still. */
         grid_text(grid, sizeof(grid));
         voice_say_text_fmt("%s", grid);
     }
