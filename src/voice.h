@@ -10,6 +10,9 @@
 
 #include "settings_types.h"
 
+/* The longest text spoken at once; more is cut off. */
+#define VOICE_TEXT_MAX 511
+
 #ifdef __cplusplus
 
 #include <cstdarg>

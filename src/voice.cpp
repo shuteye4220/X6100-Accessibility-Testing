@@ -55,11 +55,12 @@ extern "C" {
 // thread always finish its own cleanup on its own terms, just sooner.
 static std::atomic<bool> stop_requested{false};
 
-static char                         buf[512];
-static char                         prev[512];
+static char                         buf[VOICE_TEXT_MAX + 1];
+static char                         prev[VOICE_TEXT_MAX + 1];
 static pthread_t                    thread;
 static uint32_t                     delay = 0;
-static bool                         run = false;
+/* Read by the UI thread while the speech thread writes it. */
+static std::atomic<bool>            run{false};
 static uint16_t                     repeated = 0;
 static bool                         sure = false;
 // Length of the "prompt" prefix in buf, set by the caller. 0 means the
@@ -237,9 +238,26 @@ static void voice_stop_current() {
 
     if (thread) {
         pthread_join(thread, NULL);
+        thread = 0; /* joined: never join it again (voice_silence()) */
     }
 
     stop_requested = false;
+}
+
+/* Starts saying `text`, after stopping what is being said: that thread may
+ * still be reading buf, so buf is only written once it has finished.
+ * `plen`: the length of a prompt that may be skipped on repeat (see
+ * prompt_len), 0 for none. `wait_us`: the pre-speech delay. */
+static void speak(const char *text, size_t plen, uint32_t wait_us) {
+    voice_stop_current();
+
+    snprintf(buf, sizeof(buf), "%s", text);
+
+    size_t len = strlen(buf);
+    prompt_len = plen <= len ? plen : len;
+
+    delay = wait_us;
+    pthread_create(&thread, NULL, say_thread, NULL);
 }
 
 // The 1 second pre-speech wait below exists to avoid trying to speak every
@@ -280,18 +298,14 @@ void voice_delay_say_text_fmt(const char * fmt, ...) {
         return;
     }
 
+    char    text[sizeof(buf)];
     va_list args;
 
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
+    vsnprintf(text, sizeof(text), fmt, args);
     va_end(args);
 
-    prompt_len = 0;
-
-    voice_stop_current();
-
-    delay = voice_debounce_delay();
-    pthread_create(&thread, NULL, say_thread, NULL);
+    speak(text, 0, voice_debounce_delay());
 }
 
 void voice_say_text_fmt(const char * fmt, ...) {
@@ -299,18 +313,14 @@ void voice_say_text_fmt(const char * fmt, ...) {
         return;
     }
 
+    char    text[sizeof(buf)];
     va_list args;
 
     va_start(args, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, args);
+    vsnprintf(text, sizeof(text), fmt, args);
     va_end(args);
 
-    prompt_len = 0;
-
-    voice_stop_current();
-
-    delay = 0;
-    pthread_create(&thread, NULL, say_thread, NULL);
+    speak(text, 0, 0);
 }
 
 // Speak "prompt" followed by a formatted value, throttling to just the value
@@ -323,24 +333,20 @@ void voice_say_prompted_fmt(const char *prompt, const char *fmt, ...) {
         return;
     }
 
+    char   text[sizeof(buf)];
     size_t plen = strlen(prompt);
-    if (plen >= sizeof(buf)) {
-        plen = sizeof(buf) - 1;
+    if (plen >= sizeof(text)) {
+        plen = sizeof(text) - 1;
     }
-    memcpy(buf, prompt, plen);
+    memcpy(text, prompt, plen);
 
     va_list args;
 
     va_start(args, fmt);
-    vsnprintf(buf + plen, sizeof(buf) - plen, fmt, args);
+    vsnprintf(text + plen, sizeof(text) - plen, fmt, args);
     va_end(args);
 
-    prompt_len = plen;
-
-    voice_stop_current();
-
-    delay = voice_debounce_delay();
-    pthread_create(&thread, NULL, say_thread, NULL);
+    speak(text, plen, voice_debounce_delay());
 }
 
 /* Band last spoken with a frequency; -2: none yet. UI thread only. */
@@ -367,24 +373,20 @@ static void voice_say_freq_impl(uint64_t freq, uint32_t say_delay) {
 
     /* Tuning across a band edge says the new band first. Being part of the
      * prompt, it isn't repeated while tuning within the band. */
+    char        text[sizeof(buf)];
     std::string band = band_prefix((int32_t)freq, false);
-    size_t      pos  = snprintf(buf, sizeof(buf), "%s", band.c_str());
+    size_t      pos  = snprintf(text, sizeof(text), "%s", band.c_str());
 
-    if (pos >= sizeof(buf)) {
-        pos = sizeof(buf) - 1;
+    if (pos >= sizeof(text)) {
+        pos = sizeof(text) - 1;
     }
 
     /* "14. 0 0 5": leading zeros of the kHz part are spoken, so 14.005 MHz
      * isn't heard as "14. 5"; Hz are digits after "point" (14.200050 MHz
      * was read as "200.50"). The "14. " prompt is skipped on repeat. */
-    size_t plen = voice_text_freq((int32_t)freq, buf + pos, sizeof(buf) - pos);
+    size_t plen = voice_text_freq((int32_t)freq, text + pos, sizeof(text) - pos);
 
-    prompt_len = plen ? pos + plen : 0;
-
-    voice_stop_current();
-
-    delay = say_delay;
-    pthread_create(&thread, NULL, say_thread, NULL);
+    speak(text, plen ? pos + plen : 0, say_delay);
 }
 
 // For continuous VFO-knob tuning, debounced against fast spinning - see
@@ -411,16 +413,12 @@ void voice_say_prompted_freq_now(const char *prompt, uint64_t freq) {
         return;
     }
 
-    int    n   = snprintf(buf, sizeof(buf), "%s, ", prompt);
-    size_t pos = (n > 0 && (size_t)n < sizeof(buf)) ? (size_t)n : sizeof(buf) - 1;
+    char   text[sizeof(buf)];
+    int    n   = snprintf(text, sizeof(text), "%s, ", prompt);
+    size_t pos = (n > 0 && (size_t)n < sizeof(text)) ? (size_t)n : sizeof(text) - 1;
 
-    voice_text_freq((int32_t)freq, buf + pos, sizeof(buf) - pos);
-    prompt_len = 0;
-
-    voice_stop_current();
-
-    delay = 0;
-    pthread_create(&thread, NULL, say_thread, NULL);
+    voice_text_freq((int32_t)freq, text + pos, sizeof(text) - pos);
+    speak(text, 0, 0);
 }
 
 // Always announces in full ("Auto gain is on") rather than throttling to
@@ -477,14 +475,7 @@ static void say_on_demand(const std::string &text) {
         return;
     }
 
-    /* Stop first: the old thread may still be reading buf. */
-    voice_stop_current();
-
-    snprintf(buf, sizeof(buf), "%s", text.c_str());
-    prompt_len = 0;
-
-    delay = 0;
-    pthread_create(&thread, NULL, say_thread, NULL);
+    speak(text.c_str(), 0, 0);
 }
 
 static const char *mode_text(int32_t mode) {
