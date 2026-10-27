@@ -161,6 +161,52 @@ jobs:
           exit 1
         fi
 
+    - name: Go for Pat
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: false
+
+    # Test builds: the Winlink window's programs (dialog_winlink.c), built
+    # for the radio after the system, with its compiler and libraries, then
+    # put in the image: xara (VARA HF modem; HF, PulseAudio, the registered
+    # speeds for VARA licence holders) and Pat (Winlink client).
+    - name: Winlink programs (xara, Pat)
+      run: |
+        set -euo pipefail
+        BR=$GITHUB_WORKSPACE/AetherX6100Buildroot/build
+        CC=$(ls $BR/host/bin/*-linux-gnueabihf-gcc | grep -v br_real | head -n 1)
+        SYSROOT=$($CC -print-sysroot)
+        echo "compiler $CC, sysroot $SYSROOT"
+
+        fail() { echo "::error title=Winlink programs::$1"; exit 1; }
+
+        # xara, pinned to its release
+        git clone -q --depth 1 --branch v0.1.1 https://github.com/x0rro/xara "$RUNNER_TEMP/xara"
+        rustup update stable --no-self-update >/dev/null
+        rustup target add armv7-unknown-linux-gnueabihf
+        export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=$CC
+        export RUSTFLAGS="-C target-cpu=cortex-a7 -C link-arg=--sysroot=$SYSROOT -C link-arg=-Wl,-rpath-link,$SYSROOT/usr/lib/pulseaudio"
+        cargo build -q --manifest-path "$RUNNER_TEMP/xara/Cargo.toml" --locked --release \
+          --target armv7-unknown-linux-gnueabihf -p xara --bin xara \
+          --no-default-features --features pulse,registered 2>&1 | tail -n 30 \
+          || fail "xara did not build"
+        XARA=$RUNNER_TEMP/xara/target/armv7-unknown-linux-gnueabihf/release/xara
+        test -x "$XARA" || fail "xara did not build"
+        install -m 755 "$XARA" "$BR/target/usr/bin/xara"
+
+        # Pat, pinned to its release; plain Go, no C
+        git clone -q --depth 1 --branch v1.0.0 https://github.com/la5nta/pat "$RUNNER_TEMP/pat"
+        (cd "$RUNNER_TEMP/pat" && CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 \
+          go build -trimpath -ldflags "-s -w" -o "$BR/target/usr/bin/pat" .) || fail "Pat did not build"
+
+        file "$BR/target/usr/bin/xara" "$BR/target/usr/bin/pat"
+        file "$BR/target/usr/bin/xara" | grep -q "ARM" || fail "xara is not an ARM program"
+        file "$BR/target/usr/bin/pat" | grep -q "ARM" || fail "Pat is not an ARM program"
+
+        # The image again, with them in it
+        cd "$BR" && make 2>&1 | tail -n 20
+
     # Replace U-boot
     - name: Replace u-boot
       run: |
