@@ -167,6 +167,11 @@ jobs:
         go-version: '1.24'
         cache: false
 
+    - name: Node for Pat's web page
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
     # Test builds: the Winlink window's programs (dialog_winlink.c), built
     # for the radio after the system, with its compiler and libraries, then
     # put in the image: xara (VARA HF modem; HF, PulseAudio, the registered
@@ -195,8 +200,16 @@ jobs:
         test -x "$XARA" || fail "xara did not build"
         install -m 755 "$XARA" "$BR/target/usr/bin/xara"
 
-        # Pat, pinned to its release; plain Go, no C
+        # Pat, pinned to its release; plain Go, no C. Its web page with
+        # the accessibility fixes (.github/pat/accessibility.patch), built
+        # again from its sources as Pat's own build does.
         git clone -q --depth 1 --branch v1.0.0 https://github.com/la5nta/pat "$RUNNER_TEMP/pat"
+        git -C "$RUNNER_TEMP/pat" apply "$GITHUB_WORKSPACE/x6100_gui/.github/pat/accessibility.patch" \
+          || fail "Pat's web page fixes did not apply"
+        (cd "$RUNNER_TEMP/pat/web" && npm ci --no-audit --no-fund >/dev/null \
+          && NODE_OPTIONS=--openssl-legacy-provider npx webpack --mode=production --devtool=source-maps >/dev/null) \
+          || fail "Pat's web page did not build"
+        grep -q 'aria-label="Connect URL"' "$RUNNER_TEMP/pat/web/dist/index.html" || fail "Pat's web page lacks the fixes"
         (cd "$RUNNER_TEMP/pat" && CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 \
           go build -trimpath -ldflags "-s -w" -o "$BR/target/usr/bin/pat" .) || fail "Pat did not build"
 
