@@ -55,6 +55,14 @@ extern "C" {
 // thread always finish its own cleanup on its own terms, just sooner.
 static std::atomic<bool> stop_requested{false};
 
+/* voice_hold(): set from any thread while the modem transmits, when
+ * speech would go out on the air. Nothing is said meanwhile. */
+static std::atomic<bool> held{false};
+
+static bool should_stop(void) {
+    return stop_requested || held;
+}
+
 static char                         buf[VOICE_TEXT_MAX + 1];
 static char                         prev[VOICE_TEXT_MAX + 1];
 static pthread_t                    thread;
@@ -76,10 +84,13 @@ static void * say_thread(void *arg) {
     // delayed announcement short instead of blocking the caller for up
     // to the full delay.
     for (uint32_t waited = 0; waited < delay; waited += 10000) {
-        if (stop_requested) {
+        if (should_stop()) {
             return NULL;
         }
         usleep(10000);
+    }
+    if (held) {
+        return NULL;
     }
 
     run = true;
@@ -115,7 +126,7 @@ static void * say_thread(void *arg) {
         audio_set_play_mode(AUDIO_PLAY_ON);
     }
     /* The engine chosen at build time (voice_synth.h). */
-    voice_synth_speak(ptr, bt ? bt_sink : nullptr, stop_requested);
+    voice_synth_speak(ptr, bt ? bt_sink : nullptr, should_stop);
     if (!bt) {
         audio_set_play_mode(AUDIO_PLAY_OFF);
     }
@@ -186,6 +197,10 @@ static std::atomic<bool>     have_request{false};
 bool voice_enable() {
     last_request_tick = lv_tick_get();
     have_request      = true;
+
+    if (held) {
+        return false;
+    }
 
     if (recorder_is_on()) {
         return false;
@@ -471,7 +486,7 @@ static void say_on_demand(const std::string &text) {
     last_request_tick = lv_tick_get();
     have_request      = true;
 
-    if (recorder_is_on() || on_air()) {
+    if (recorder_is_on() || on_air() || held) {
         return;
     }
 
@@ -525,6 +540,16 @@ void voice_say_typing(const char *text) {
 
 void voice_silence() {
     voice_stop_current();
+}
+
+void voice_hold(bool on) {
+    held = on;
+
+    /* Speech in progress stops within an audio chunk; wait for it to
+     * hand the audio path back (at most 300 ms). */
+    for (int i = 0; on && run && i < 60; i++) {
+        usleep(5000);
+    }
 }
 
 void voice_say_status() {

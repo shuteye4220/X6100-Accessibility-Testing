@@ -73,14 +73,14 @@ static int        sample_rate = 0; /* 0: not initialised, -1: failed */
 static std::string current_voice;
 
 /* For the synth callback: eSpeak gives it no user pointer. */
-static pa_simple               *pa;
-static const std::atomic<bool> *stop_flag;
-static bool                     write_failed;
+static pa_simple *pa;
+static bool (*stop_flag)(void);
+static bool       write_failed;
 
 static int synth_cb(short *wav, int numsamples, espeak_EVENT *events) {
     (void)events;
 
-    if (stop_flag && *stop_flag) {
+    if (stop_flag && stop_flag()) {
         return 1; /* abort */
     }
     if (wav && numsamples > 0) {
@@ -153,7 +153,7 @@ static void set_voice() {
     current_voice = want;
 }
 
-bool voice_synth_speak(const char *text, const char *device, const std::atomic<bool> &stop) {
+bool voice_synth_speak(const char *text, const char *device, bool (*should_stop)(void)) {
     std::lock_guard<std::mutex> guard(lock);
 
     if (!text || !*text || !init()) {
@@ -188,12 +188,12 @@ bool voice_synth_speak(const char *text, const char *device, const std::atomic<b
         return false;
     }
 
-    stop_flag    = &stop;
+    stop_flag    = should_stop;
     write_failed = false;
 
     espeak_Synth(text, strlen(text) + 1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, NULL, NULL);
 
-    bool completed = !stop && !write_failed;
+    bool completed = !should_stop() && !write_failed;
 
     if (completed) {
         pa_simple_drain(pa, &err);
@@ -204,7 +204,7 @@ bool voice_synth_speak(const char *text, const char *device, const std::atomic<b
     pa        = NULL;
     stop_flag = NULL;
 
-    return completed && !stop;
+    return completed && !should_stop();
 }
 
 const char *voice_synth_engine(void) {

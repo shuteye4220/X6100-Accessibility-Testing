@@ -71,6 +71,11 @@ void voice_say_typing(const char *text);
 /* Stop speaking. */
 void voice_silence();
 
+/* While on, nothing is spoken, and speech in progress is cut short: for
+ * the modem's transmissions (winlink_rig.c), which speech would get into.
+ * Any thread; returns once the speech has stopped (at most 300 ms). */
+void voice_hold(bool on);
+
 /* Text asked for by a key press, spoken the same way as the above. */
 void voice_say_requested(const char *text);
 

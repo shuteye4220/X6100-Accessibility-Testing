@@ -20,12 +20,12 @@
 #include <stddef.h>
 
 #ifdef __cplusplus
-#include <atomic>
 
 /* Speak `text` and wait until it has been played. `device`: a PulseAudio
  * sink (Bluetooth headphones), NULL for the radio's speaker. Stops early,
- * dropping what's left, once `stop` is set. True if spoken to the end. */
-bool voice_synth_speak(const char *text, const char *device, const std::atomic<bool> &stop);
+ * dropping what's left, once `should_stop()` is true (asked every audio
+ * chunk, from this thread). True if spoken to the end. */
+bool voice_synth_speak(const char *text, const char *device, bool (*should_stop)(void));
 
 extern "C" {
 #endif

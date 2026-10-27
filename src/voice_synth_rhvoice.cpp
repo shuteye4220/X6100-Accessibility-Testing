@@ -36,7 +36,7 @@ static const voice_synth_choice_t voices[VOICES_NUM] = {
 
 class audio_player : public client {
   public:
-    audio_player(const char *device, const std::atomic<bool> &stop) : stop(stop) {
+    audio_player(const char *device, bool (*should_stop)(void)) : should_stop(should_stop) {
         stream.set_sample_rate(24000);
         stream.set_buffer_size(512);
         if (device) {
@@ -46,7 +46,7 @@ class audio_player : public client {
     }
 
     bool play_speech(const short *buf, std::size_t count) override {
-        if (stop) {
+        if (should_stop()) {
             return false;
         }
 
@@ -68,13 +68,13 @@ class audio_player : public client {
     bool failed = false;
 
   private:
-    const std::atomic<bool> &stop;
-    audio::playback_stream   stream;
+    bool (*should_stop)(void);
+    audio::playback_stream stream;
 };
 
 static std::shared_ptr<engine> eng(new engine);
 
-bool voice_synth_speak(const char *text, const char *device, const std::atomic<bool> &stop) {
+bool voice_synth_speak(const char *text, const char *device, bool (*should_stop)(void)) {
     int32_t lang = cfg.voice.lang()->get();
 
     if (lang < 0 || lang >= VOICES_NUM) {
@@ -82,7 +82,7 @@ bool voice_synth_speak(const char *text, const char *device, const std::atomic<b
     }
 
     voice_profile profile = eng->create_voice_profile(voices[lang].id);
-    audio_player  player(device, stop);
+    audio_player  player(device, should_stop);
 
     std::istringstream             in{text};
     std::istreambuf_iterator<char> start{in};
@@ -97,7 +97,7 @@ bool voice_synth_speak(const char *text, const char *device, const std::atomic<b
     doc->synthesize();
     player.finish();
 
-    return !stop && !player.failed;
+    return !should_stop() && !player.failed;
 }
 
 const char *voice_synth_engine(void) {
