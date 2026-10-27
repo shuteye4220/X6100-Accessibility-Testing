@@ -36,6 +36,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     bt_audio.c
     knobs.cpp lock_manager.c indicators.cpp freq_info.cpp
     dialog_bt.c bt_ctl.c bt_dev.c bt_spp.c
+    dialog_winlink.c winlink_rig.c
 )
 
 add_subdirectory(fonts)

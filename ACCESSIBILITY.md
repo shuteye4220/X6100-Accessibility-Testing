@@ -62,6 +62,23 @@ Readouts and settings:
 
 Typing into a text field (callsign, QTH, CW messages, Wi-Fi password, and the text modes' compose boxes to come) is echoed as set in Settings > Voice > Typing echo (characters by default). The arrows, Home, End, Backspace and Delete say the character you land on or delete.
 
+## Winlink (VARA HF)
+
+APP, page 3, **Winlink** (or a long-press key set to "APP Winlink"). Test builds carry the two programs it runs: **xara**, a VARA HF compatible modem, and **Pat**, the Winlink client. Firmware without them says so when you press Start.
+
+You use Winlink from Pat's web page, on a phone or computer on the same Wi-Fi: send and read mail, pick a gateway and connect. The radio's window runs the programs and tells you what is happening.
+
+- **F1 Start / Stop.** Start sets USB digital, a filter for the bandwidth and at most 5 W (as FT8 does), and says the status. Your call sign must be set (APP, Callsign); your grid (QTH) is passed on too. Closing the window stops everything and puts the radio back as it was.
+- **F2 Bandwidth:** 500, 2300 or 2750 Hz.
+- **F3 Network: Off / On.** Off each time the window opens. Off, only the radio itself can reach Pat and the modem. On, Pat's web page is at the radio's address, port 8080 - the window says the address - and the modem's ports 8300 and 8301 are open too, for Winlink programs on a computer. **Anyone on that network can then use them: send mail as you, read your mail and Pat's settings (your Winlink password among them), and make the radio transmit.** Use it on your own network, and turn it off after.
+- **F4 Status** (also the knob's press, and Speak here): running or not, connected station and speed, bandwidth, network access and the web address.
+- Page 2: **TX level** (-30 to 0 dB, the modem's drive - watch ALC with Speak meters) and **Speeds: Registered / Free** (registered speeds need a VARA HF licence).
+- Turning the knob reads the window's recent events, newest first.
+
+Spoken as they happen: "Calling VE3XYZ", "Connected to VE3XYZ" (or "VE3XYZ connected" for a call to you), "Disconnected", and the modem or Pat stopping. **Nothing is spoken while the modem transmits** - speech would go out on the air - so a message can be cut short by the next transmission; Status says it again.
+
+Pat listens for calls too: peer-to-peer messages from other stations arrive while the window runs. Its files - settings, mailbox, log - are in `/mnt/winlink` on the card. Set your Winlink password on Pat's web page before connecting to a gateway, or Pat offers an over-the-air account activation.
+
 ## Making a new app speak
 
 Mainline is adding apps (WSPR, JS8, PSK31, Olivia, WeFax, SSTV). Pieces that cover them with little or no code:

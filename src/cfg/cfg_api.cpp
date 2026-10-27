@@ -226,6 +226,9 @@ static ParamInt *cfg_js8_ultra(void) { return param_ref<ParamInt>(cfg_instance()
 static ParamInt *cfg_js8_ghostnet(void) { return param_ref<ParamInt>(cfg_instance().p_js8_ghostnet); }
 static ParamInt *cfg_js8_custom_on(void) { return param_ref<ParamInt>(cfg_instance().p_js8_custom_on); }
 static ParamInt *cfg_js8_custom_hz(void) { return param_ref<ParamInt>(cfg_instance().p_js8_custom_hz); }
+static ParamInt *cfg_winlink_bw(void) { return param_ref<ParamInt>(cfg_instance().p_winlink_bw); }
+static ParamInt *cfg_winlink_drive(void) { return param_ref<ParamInt>(cfg_instance().p_winlink_drive); }
+static ParamInt *cfg_winlink_registered(void) { return param_ref<ParamInt>(cfg_instance().p_winlink_registered); }
 static ParamInt *cfg_theme(void) { return param_ref<ParamInt>(cfg_instance().p_theme); }
 static ParamInt *cfg_meter_color(void) { return param_ref<ParamInt>(cfg_instance().p_meter_color); }
 static ParamInt *cfg_ft8_info(void) { return param_ref<ParamInt>(cfg_instance().p_ft8_info); }
@@ -490,6 +493,11 @@ extern "C" const cfg_refs_t cfg = {
         .ghostnet = &cfg_js8_ghostnet,
         .custom_on = &cfg_js8_custom_on,
         .custom_hz = &cfg_js8_custom_hz,
+    },
+    .winlink = {
+        .bw = &cfg_winlink_bw,
+        .drive = &cfg_winlink_drive,
+        .registered = &cfg_winlink_registered,
     },
 };
 

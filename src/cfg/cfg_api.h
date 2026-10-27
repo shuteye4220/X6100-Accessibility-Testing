@@ -307,6 +307,12 @@ typedef struct {
 } cfg_js8_refs_t;
 
 typedef struct {
+    ParamInt *(*bw)(void); /* p_winlink_bw */
+    ParamInt *(*drive)(void); /* p_winlink_drive */
+    ParamInt *(*registered)(void); /* p_winlink_registered */
+} cfg_winlink_refs_t;
+
+typedef struct {
     ParamText *(*bind)(void); /* p_encoder_bind */
 } cfg_encoder_refs_t;
 
@@ -470,6 +476,7 @@ typedef struct {
     cfg_keys_refs_t keys;
     cfg_radio_refs_t radio;
     cfg_js8_refs_t js8;
+    cfg_winlink_refs_t winlink;
 } cfg_refs_t;
 
 extern const cfg_refs_t cfg;

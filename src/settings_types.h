@@ -45,6 +45,9 @@ typedef enum {
     ACTION_APP_WIFI,
     ACTION_APP_BT = 116,
 
+    /* Apps of this fork, in a range of their own, out of mainline's way. */
+    ACTION_APP_WINLINK = 190, /* xara VARA HF modem and Pat (dialog_winlink.c) */
+
     /* Spoken readouts. Saved on the card like the apps, so each value is
      * written out and never reused, in a range of their own (200+) that
      * the actions mainline adds one by one after ACTION_NB_TOGGLE won't

@@ -406,6 +406,17 @@ class SettingsManager {
     Parameter<int32_t> p_js8_custom_hz{"js8_custom_hz", 0, {},
         StorageType::GLOBAL, pending_writes_, {}, &global_params_}; // last custom dial frequency, 0 = none
 
+    // Winlink window (dialog_winlink.c): VARA HF bandwidth as an index
+    // (0: 500, 1: 2300, 2: 2750 Hz) and the modem's TX drive in dB
+    Parameter<int32_t> p_winlink_bw{"winlink_bw", 1, 0, 2,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
+    Parameter<int32_t> p_winlink_drive{"winlink_drive", -10, -30, 0,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
+    // The faster speeds of a registered (paid) VARA HF licence: on for
+    // licence holders, whose builds these are
+    Parameter<int32_t> p_winlink_registered{"winlink_registered", 1, 0, 1,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
+
     // Station identity
     Parameter<std::string> p_qth{"qth", "", {},
         StorageType::GLOBAL, pending_writes_, {}, &global_params_};

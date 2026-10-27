@@ -45,6 +45,7 @@
 #include "dialog_callsign.h"
 #include "dialog_wifi.h"
 #include "dialog_bt.h"
+#include "dialog_winlink.h"
 #include "display.h"
 #include "buttons.h"
 #include "recorder.h"
@@ -167,6 +168,10 @@ static void say_here() {
         dialog_gps_say_summary();
         return;
     }
+    if (dialog_type_is_run(dialog_winlink)) {
+        dialog_winlink_say_status();
+        return;
+    }
     if (dialog_say_focused()) {
         return;
     }
@@ -241,6 +246,11 @@ void main_screen_start_app(press_action_t app_action) {
             // No "window" announcement - the Bluetooth window speaks its
             // own opening summary, which this would race.
             dialog_construct(dialog_bt, obj);
+            break;
+
+        case ACTION_APP_WINLINK:
+            // Speaks its own opening, as the Bluetooth window does.
+            dialog_construct(dialog_winlink, obj);
             break;
 
         default:
@@ -341,6 +351,7 @@ void main_screen_action(press_action_t action) {
         case ACTION_APP_RECORDER:
         case ACTION_APP_WIFI:
         case ACTION_APP_BT:
+        case ACTION_APP_WINLINK:
             main_screen_start_app(action);
             break;
 
