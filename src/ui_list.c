@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "events.h"
 #include "styles.h"
+#include "voice.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -212,7 +213,49 @@ static void key_cb(lv_event_t *e) {
 
     if (l->sel != old_sel) {
         lv_event_send(obj, LV_EVENT_VALUE_CHANGED, NULL);
+        ui_list_say_selected(obj);
     }
+}
+
+/* The selected row, read: its cells, "unavailable" for a greyed row, and
+ * where it is ("3 of 12"); the empty text for an empty list. */
+void ui_list_say_selected(lv_obj_t *list) {
+    ui_list_t *l = state(list);
+
+    if (!l) {
+        return;
+    }
+    if (l->count <= 0) {
+        voice_say_text_fmt("%s", l->cfg.empty_text ? l->cfg.empty_text : "Empty list");
+        return;
+    }
+    if (!row_valid(l, l->sel) || !l->cfg.row_cb) {
+        return;
+    }
+
+    ui_list_row_t row;
+    char          text[UI_LIST_MAX_COLS * (UI_LIST_CELL_LEN + 2) + 48];
+    size_t        o = 0;
+
+    memset(&row, 0, sizeof(row));
+    l->cfg.row_cb(l->cfg.user, l->sel, &row);
+    text[0] = '\0';
+    for (int c = 0; c < l->cfg.col_count && c < UI_LIST_MAX_COLS; c++) {
+        row.cell[c][UI_LIST_CELL_LEN - 1] = '\0';
+        if (row.cell[c][0] && o < sizeof(text) - 1) {
+            int n = snprintf(text + o, sizeof(text) - o, "%s%s", o ? ", " : "", row.cell[c]);
+            o += n > 0 ? (size_t)n : 0;
+        }
+    }
+    if (o >= sizeof(text)) {
+        o = sizeof(text) - 1;
+    }
+    snprintf(text + o, sizeof(text) - o, "%s, %d of %d", row.muted ? ", unavailable" : "", l->sel + 1, l->count);
+    voice_say_text_fmt("%s", text);
+}
+
+static void focused_cb(lv_event_t *e) {
+    ui_list_say_selected(lv_event_get_target(e));
 }
 
 static void activate_cb(lv_event_t *e) {
@@ -494,6 +537,7 @@ lv_obj_t *ui_list_create(lv_obj_t *parent, const ui_list_cfg_t *cfg) {
 
     lv_obj_add_event_cb(obj, draw_cb, LV_EVENT_DRAW_MAIN, NULL);
     lv_obj_add_event_cb(obj, key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(obj, focused_cb, LV_EVENT_FOCUSED, NULL); /* says where it is on arrival */
     lv_obj_add_event_cb(obj, activate_cb,
                         cfg->activate_on_click ? LV_EVENT_CLICKED : LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(obj, delete_cb, LV_EVENT_DELETE, NULL);

@@ -110,6 +110,9 @@ void ui_list_set_count(lv_obj_t *list, int count);
 
 int  ui_list_get_count(lv_obj_t *list);
 
+/* Speaks the selected row (as the keys do when they move it). */
+void ui_list_say_selected(lv_obj_t *list);
+
 /* Selected row, or -1 when the list is empty. */
 int  ui_list_get_selected(lv_obj_t *list);
 

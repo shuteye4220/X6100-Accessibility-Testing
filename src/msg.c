@@ -95,7 +95,15 @@ static void msg_update_cb(lv_event_t * e) {
     timer_end += msg->dur;
 }
 
+/* Pop-ups made so far: msg_count(). Any thread. */
+static uint32_t created_count = 0;
+
+uint32_t msg_count(void) {
+    return __atomic_load_n(&created_count, __ATOMIC_RELAXED);
+}
+
 static void create_msg(const char * fmt, enum msg_type_t type, uint16_t dur, va_list args) {
+    __atomic_add_fetch(&created_count, 1, __ATOMIC_RELAXED);
     delayed_message_t * msg = (delayed_message_t *) malloc(sizeof(delayed_message_t));
     vsnprintf(msg->text, sizeof(msg->text), fmt, args);
     msg->created = lv_tick_get();

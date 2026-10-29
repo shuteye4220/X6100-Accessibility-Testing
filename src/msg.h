@@ -23,6 +23,10 @@ void msg_align(void);
 /// @param
 void msg_update_text_fmt(const char * fmt, ...);
 
+/* How many pop-ups have been made (a caller can tell whether something it
+ * ran showed one, which the voice then reads). */
+uint32_t msg_count(void);
+
 
 /// @brief Schedule message with text
 /// @param fmt

@@ -881,12 +881,14 @@ void buttons_press(uint8_t n, bool hold) {
     } else {
         if (btn_data->press) {
             uint32_t asked = voice_request_count();
+            uint32_t shown = msg_count();
 
             btn_data->press(btn_data);
             /* An action that said nothing - mainline's newer apps, mostly -
              * gets its key's label read, as it is after the press: a toggle
              * then says its new state ("Show: All"). */
-            if (voice_request_count() == asked) {
+            /* A pop-up it made is read instead (voice_say_popup()). */
+            if (voice_request_count() == asked && msg_count() == shown) {
                 const char *label = btn_data->type == BTN_TEXT_FN && btn_data->label_fn ? btn_data->label_fn()
                                                                                         : btn_data->label;
                 if (label && *label) {
