@@ -880,7 +880,19 @@ void buttons_press(uint8_t n, bool hold) {
         }
     } else {
         if (btn_data->press) {
+            uint32_t asked = voice_request_count();
+
             btn_data->press(btn_data);
+            /* An action that said nothing - mainline's newer apps, mostly -
+             * gets its key's label read, as it is after the press: a toggle
+             * then says its new state ("Show: All"). */
+            if (voice_request_count() == asked) {
+                const char *label = btn_data->type == BTN_TEXT_FN && btn_data->label_fn ? btn_data->label_fn()
+                                                                                        : btn_data->label;
+                if (label && *label) {
+                    voice_say_text_fmt("%s", voice::label_text(label).c_str());
+                }
+            }
         } else {
             LV_LOG_USER("Button %u press action is NULL", n);
         }

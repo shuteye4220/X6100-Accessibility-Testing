@@ -195,10 +195,17 @@ void voice_change_mode() {
  * pop-up shown by the same action stay quiet (voice_say_popup()). */
 static std::atomic<uint32_t> last_request_tick{0};
 static std::atomic<bool>     have_request{false};
+/* Announcements asked for so far, said or not: voice_request_count(). */
+static std::atomic<uint32_t> request_count{0};
+
+uint32_t voice_request_count() {
+    return request_count;
+}
 
 bool voice_enable() {
     last_request_tick = lv_tick_get();
     have_request      = true;
+    request_count++;
 
     if (held) {
         return false;
@@ -487,6 +494,7 @@ static bool on_air() {
 static void say_on_demand(const std::string &text) {
     last_request_tick = lv_tick_get();
     have_request      = true;
+    request_count++;
 
     if (recorder_is_on() || on_air() || held) {
         return;

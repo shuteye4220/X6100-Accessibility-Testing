@@ -80,6 +80,10 @@ void voice_silence();
  * Any thread; returns once the speech has stopped (at most 300 ms). */
 void voice_hold(bool on);
 
+/* How many announcements have been asked for (said or not): a caller can
+ * tell whether something it ran spoke. */
+uint32_t voice_request_count();
+
 /* Text asked for by a key press, spoken the same way as the above. */
 void voice_say_requested(const char *text);
 

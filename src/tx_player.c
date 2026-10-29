@@ -9,6 +9,7 @@
  */
 
 #include "tx_player.h"
+#include "voice.h"
 
 #include <math.h>
 #include <stddef.h>
@@ -93,6 +94,9 @@ bool tx_player_stream(tx_fill_fn_t  fill,
 
     uint64_t radio_freq = cparam_i_get(cfg.cur.fg_freq());
     radio_set_freq((int32_t)radio_freq + tx_offset_hz - TX_PLAYER_AUDIO_HZ);
+    /* Speech plays into the codec output the modulator takes: none while
+     * this transmits (JS8, SSTV...). */
+    voice_hold(true);
     radio_set_modem(true);
 
     /* The drive from the ALC and power readback (tx_level.c): ramped up
@@ -134,6 +138,7 @@ bool tx_player_stream(tx_fill_fn_t  fill,
                 LV_MAX(gain_offset - base_gain_offset + play_gain_offset, LEARNED_MIN_DB));
     audio_play_wait();
     radio_set_modem(false);
+    voice_hold(false);
     radio_set_freq((int32_t)radio_freq);
     audio_set_play_vol(param_f_get(cfg.audio.play_gain_db()));
 
