@@ -175,6 +175,10 @@ static void next_freq_step(bool up) {
  *   otherwise          status: VFO, band, frequency, mode...
  */
 static void say_here() {
+    /* Channels may be open over another app: it is what you are on. */
+    if (dialog_channels_say_here()) {
+        return;
+    }
     if (dialog_type_is_run(dialog_ft8) && table_view_say_selected()) {
         return;
     }

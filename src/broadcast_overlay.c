@@ -13,6 +13,7 @@
 
 #include "styles.h"
 #include "msg.h"
+#include "voice.h"
 #include "cfg/cfg_api.h"
 #include "dialog_channels.h"
 #include "channels.h"
@@ -121,6 +122,17 @@ static void broadcast_overlay_render(void) {
             m->itu[0] ? m->itu : "-",
             m->days[0] ? m->days : "Daily"
         );
+
+        char pos[24] = "";
+
+        if (broadcast_match_count > 1) {
+            snprintf(pos, sizeof(pos), ", %u of %u", (unsigned)(broadcast_match_index + 1),
+                     (unsigned)broadcast_match_count);
+        }
+        voice_say_text_fmt("%s%s. %.*f kilohertz, %02d %02d to %02d %02d U T C. Language %s, target %s%s%s",
+                           m->station[0] ? m->station : "Unnamed station", pos,
+                           m->freq_khz == (double)(long)m->freq_khz ? 0 : 1, m->freq_khz, sh, sm, eh, em,
+                           lang, target, m->days[0] ? ", days " : ", daily", m->days);
     } else {
         lv_label_set_text(broadcast_overlay_counter, "");
         lv_label_set_text(broadcast_overlay_name, "NO STATION SCHEDULED");
@@ -129,6 +141,7 @@ static void broadcast_overlay_render(void) {
             "\n%.3f kHz",
             (double)broadcast_search_frequency / 1000.0
         );
+        voice_say_text_fmt("No station scheduled");
     }
 
     lv_obj_move_foreground(broadcast_overlay);
@@ -169,6 +182,7 @@ static void broadcast_overlay_save_error(const char *detail) {
         lv_label_set_text(broadcast_overlay_counter, "");
         lv_label_set_text(broadcast_overlay_name, "SAVE ERROR");
         lv_label_set_text(broadcast_overlay_label, detail);
+        voice_say_text_fmt("Channel save error: %s", detail);
         lv_obj_move_foreground(broadcast_overlay);
     } else {
         msg_schedule_text_fmt("Channel save error: %s", detail);
@@ -219,6 +233,7 @@ void broadcast_overlay_save_channel(void) {
             lv_label_set_text(broadcast_overlay_counter, "");
             lv_label_set_text(broadcast_overlay_name, "SAVE ERROR");
             lv_label_set_text(broadcast_overlay_label, "Unable to load channels");
+            voice_say_text_fmt("Channel save error: %s", "Unable to load channels");
         } else {
             msg_schedule_text_fmt("Channel save error");
         }
@@ -235,6 +250,7 @@ void broadcast_overlay_save_channel(void) {
             lv_label_set_text(broadcast_overlay_counter, "");
             lv_label_set_text(broadcast_overlay_name, "SAVE ERROR");
             lv_label_set_text(broadcast_overlay_label, "Unable to add channel");
+            voice_say_text_fmt("Channel save error: %s", "Unable to add channel");
         } else {
             msg_schedule_text_fmt("Channel save error");
         }
@@ -254,6 +270,7 @@ void broadcast_overlay_save_channel(void) {
                 lv_label_set_text(broadcast_overlay_counter, "");
                 lv_label_set_text(broadcast_overlay_name, "SAVE ERROR");
                 lv_label_set_text(broadcast_overlay_label, "Unable to set channel name");
+                voice_say_text_fmt("Channel save error: %s", "Unable to set channel name");
             } else {
                 msg_schedule_text_fmt("Channel save error");
             }
@@ -273,6 +290,8 @@ void broadcast_overlay_save_channel(void) {
             broadcast_overlay_label,
             have_match ? match.station : ""
         );
+        voice_say_text_fmt("Channel saved%s%s", have_match && match.station[0] ? ", " : "",
+                           have_match ? match.station : "");
 
         if (broadcast_overlay_timer) {
             lv_timer_reset(broadcast_overlay_timer);

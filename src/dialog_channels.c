@@ -47,6 +47,7 @@
 #include "keyboard.h"
 #include "events.h"
 #include "voice.h"
+#include "voice_text.h"
 #include "pubsub_ids.h"
 #include "textarea_window.h"
 #include "cfg/cfg_api.h"
@@ -245,6 +246,47 @@ static const char *mode_to_string(x6100_mode_t mode) {
         case x6100_mode_nfm:        return "NFM";
         default:                    return "?";
     }
+}
+
+/* The mode as said: "U S B digital", not "USB-D". */
+static const char *mode_spoken(x6100_mode_t mode) {
+    switch (mode) {
+        case x6100_mode_lsb:        return "L S B";
+        case x6100_mode_usb:        return "U S B";
+        case x6100_mode_lsb_dig:    return "L S B digital";
+        case x6100_mode_usb_dig:    return "U S B digital";
+        case x6100_mode_cw:         return "C W";
+        case x6100_mode_cwr:        return "C W reverse";
+        case x6100_mode_am:         return "A M";
+        case x6100_mode_nfm:        return "N F M";
+        default:                    return "";
+    }
+}
+
+/* The selected channel, after `before` (may be empty): "Before. 40m net,
+ * 7. 0 7 5, L S B, 3 of 12". With none saved, how to add one. */
+static void say_selected(const char *before) {
+    char text[256];
+    int  n = snprintf(text, sizeof(text), "%s%s", before, before[0] ? ". " : "");
+
+    if (n < 0 || n >= (int)sizeof(text)) {
+        return;
+    }
+
+    const channel_t *ch = row_valid(sel_row) ? channels_get((uint16_t)sel_row) : NULL;
+
+    if (!ch) {
+        snprintf(text + n, sizeof(text) - n, "No channels. Add saves the frequency you are on.");
+    } else {
+        char        freq[64];
+        const char *mode = mode_spoken(ch->mode);
+
+        voice_text_freq((int32_t)ch->freq, freq, sizeof(freq));
+        snprintf(text + n, sizeof(text) - n, "%s%s, %s%s%s, %d of %d", drag_active ? "Moving " : "",
+                 ch->name[0] ? ch->name : "No name", freq, mode[0] ? ", " : "", mode, sel_row + 1,
+                 (int)channels_count());
+    }
+    voice_say_text_fmt("%s", text);
 }
 
 /*
@@ -649,7 +691,8 @@ static void key_cb(lv_event_t *e) {
         return;
     }
 
-    uint32_t key = *((uint32_t *)lv_event_get_param(e));
+    uint32_t key   = *((uint32_t *)lv_event_get_param(e));
+    bool     moved = true; /* said even at an end, or with one channel */
 
     switch (key) {
         case LV_KEY_RIGHT:
@@ -689,10 +732,15 @@ static void key_cb(lv_event_t *e) {
 
         case LV_KEY_ESC:
             close_window();
+            moved = false;
             break;
 
         default:
+            moved = false;
             break;
+    }
+    if (moved && table) {
+        say_selected("");
     }
 }
 
@@ -865,6 +913,7 @@ static void open_common(void) {
     input_attach();
 
     set_selection(row_valid(last_recalled_row) ? last_recalled_row : 0, SCROLL_CENTER);
+    say_selected("Channels window");
 }
 
 /* Reset everything that belongs to an open window (both modes). */
@@ -1312,6 +1361,14 @@ bool dialog_channels_empty(void) {
 
 bool dialog_channels_is_open(void) {
     return win_mode != WIN_CLOSED;
+}
+
+bool dialog_channels_say_here(void) {
+    if (!is_open() || edit_active) {
+        return false;
+    }
+    say_selected("");
+    return true;
 }
 
 bool dialog_channels_busy(void) {

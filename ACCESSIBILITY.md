@@ -2,6 +2,8 @@
 
 Experimental branch adding spoken feedback (screen-reader style) to the X6100 GUI, for use with the radio's own text-to-speech. Built and tested by a blind ham using JAWS conventions as a guide, not a sighted assumption of what "should" be spoken.
 
+For a step-by-step guide to the whole radio by ear, see [GUIDE.md](GUIDE.md).
+
 ## How to try it
 
 Flash the image from [Releases](https://github.com/Jimr9/X6100-Accessibility-Testing/releases) the same way as upstream (see main README). Speech is on from the first start (Voice mode: Always), and once the radio has started it says "Radio ready" and the frequency and mode - a silent start means something is wrong. Voice mode can be set to LCD (only with the screen off) or Off in Settings > Voice, or by long-pressing DFN.
@@ -36,6 +38,9 @@ These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mi
 - **Key pages** say what F2-F5 do after the page name (Settings > Voice > Read function keys).
 - **Pop-up messages** that had no announcement of their own ("Wrong WiFi password", "Nothing to load for memory 3", ...), except while transmitting (Settings > Voice > Speak pop-up messages).
 - **Decoded text**: RTTY is read aloud as it comes in, in phrases, with callsigns and abbreviations spelled out ("C Q D E V E 3 X Y Z K"). Settings > Voice > Read decoded text: Off, Text modes (not the CW decoder, which you hear yourself), or All.
+- **Channels window** (APP page 4, or the hand-mic V/M): on opening and as you move, the selected channel - "40m net, 7. 0 75, L S B, 3 of 12" - and "Moving ..." while dragging one; Speak here repeats it.
+- **Broadcast info** (hand-mic GENE): the station, "2 of 3" when there are more, the frequency, hours, language and target; "No station scheduled"; and Save as channel (NW), "Channel saved, ...".
+- **App key pages** (JS8, SSTV, WeFax) say their names, as FT8's do.
 - **GPS window**: a summary on opening (fix, grid, satellites, UTC time), the grid in phonetics; Summary, Grid, Position, Time and Sats keys; the multi-function knob reads one row at a time and its press repeats the summary; a gained or lost fix, or a new grid, is announced.
 
 ## With a keyboard (USB or Bluetooth)
@@ -87,7 +92,7 @@ APP, pages 3 and 4 (from mainline). There's nothing to read in a picture, so the
 
 ## Winlink (VARA HF)
 
-APP, page 3, **Winlink** (or a long-press key set to "APP Winlink"). Test builds carry the two programs it runs: **xara**, a VARA HF compatible modem, and **Pat**, the Winlink client. Firmware without them says so when you press Start.
+APP, page 4, **Winlink** (or a long-press key set to "APP Winlink"). Test builds carry the two programs it runs: **xara**, a VARA HF compatible modem, and **Pat**, the Winlink client. Firmware without them says so when you press Start.
 
 You use Winlink from Pat's web page, on a phone or computer on the same Wi-Fi: send and read mail, pick a gateway and connect. The radio's window runs the programs and tells you what is happening.
 

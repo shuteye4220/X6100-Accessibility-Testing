@@ -350,6 +350,7 @@ static unsigned int vertical_accumulator = 0;
 static button_data_t btn_fax_page_1 = {
     .type = BTN_TEXT,
     .label = "(FAX 1:4)",
+    .voice = "WeFax page 1",
     .press = fax_page_2_cb
 };
 
@@ -384,6 +385,7 @@ static button_data_t btn_clear = {
 static button_data_t btn_fax_page_2 = {
     .type = BTN_TEXT,
     .label = "(FAX 2:4)",
+    .voice = "WeFax page 2",
     .press = fax_page_3_cb
 };
 
@@ -418,6 +420,7 @@ static button_data_t btn_save = {
 static button_data_t btn_fax_page_3 = {
     .type = BTN_TEXT,
     .label = "(FAX 3:4)",
+    .voice = "WeFax page 3",
     .press = fax_page_4_cb
 };
 
@@ -455,6 +458,7 @@ static button_data_t btn_save_fax = {
 static button_data_t btn_fax_page_4 = {
     .type = BTN_TEXT,
     .label = "(FAX 4:4)",
+    .voice = "WeFax page 4",
     .press = fax_page_1_cb
 };
 

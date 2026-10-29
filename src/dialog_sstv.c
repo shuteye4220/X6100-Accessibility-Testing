@@ -445,13 +445,13 @@ static volatile sstv_cont_event_t cont_end_reason = SSTV_CONT_EV_NONE;
 
 /* 3-page menu (Info, and Test RX / AUTODETECT if enabled, on page 3). */
 static button_data_t btn_sstv_page_1 = {
-    .type = BTN_TEXT, .label = "(SSTV 1:3)", .press = page_2_cb
+    .type = BTN_TEXT, .label = "(SSTV 1:3)", .voice = "S S T V page 1", .press = page_2_cb
 };
 static button_data_t btn_sstv_page_2 = {
-    .type = BTN_TEXT, .label = "(SSTV 2:3)", .press = page_3_cb
+    .type = BTN_TEXT, .label = "(SSTV 2:3)", .voice = "S S T V page 2", .press = page_3_cb
 };
 static button_data_t btn_sstv_page_3 = {
-    .type = BTN_TEXT, .label = "(SSTV 3:3)", .press = page_1_cb
+    .type = BTN_TEXT, .label = "(SSTV 3:3)", .voice = "S S T V page 3", .press = page_1_cb
 };
 static button_data_t btn_start = { .type = BTN_TEXT, .label = "Start\nAuto RX", .press = start_cb };
 static button_data_t btn_cont_start = { .type = BTN_TEXT, .label = "Start\nManual RX", .press = cont_start_cb };

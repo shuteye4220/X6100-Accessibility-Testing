@@ -24,6 +24,9 @@ void dialog_channels_toggle(lv_obj_t *parent, bool other_dialog_running);
 /* True while the CHANNELS window is open (either mode). */
 bool dialog_channels_is_open(void);
 
+/* Speak here: the selected channel. False if the window is not open. */
+bool dialog_channels_say_here(void);
+
 /*
  * True while the open window has unsaved changes in progress (Drag or
  * Edit): the channel database must not be modified from outside.
