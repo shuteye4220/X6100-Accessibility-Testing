@@ -168,23 +168,25 @@ void voice_wait_done() {
 void voice_change_mode() {
     voice_sure();
 
+    /* Said whole every time: as a prompt ("Voice mode", then the value)
+     * the repeat throttle dropped "Voice mode" from the second press on. */
     switch (cfg.voice.mode()->get()) {
         case VOICE_OFF:
             cfg.voice.mode()->set(VOICE_LCD);
             msg_update_text_fmt("Voice mode: LCD");
-            voice_say_text("Voice mode", "is LCD");
+            voice_say_text_fmt("Voice mode: only with the screen off");
             break;
 
         case VOICE_LCD:
             cfg.voice.mode()->set(VOICE_ALWAYS);
             msg_update_text_fmt("Voice mode: Always");
-            voice_say_text("Voice mode", "is always");
+            voice_say_text_fmt("Voice mode: always");
             break;
 
         case VOICE_ALWAYS:
             cfg.voice.mode()->set(VOICE_OFF);
             msg_update_text_fmt("Voice mode: Off");
-            voice_say_text("Voice mode", "is off");
+            voice_say_text_fmt("Voice mode: off");
             break;
     }
 }
