@@ -21,7 +21,7 @@ extern "C" {
 
 typedef void (*dialog_construct_cb_t)(lv_obj_t *);
 typedef void (*dialog_destruct_cb_t)(void);
-typedef void (*dialog_rotary_cb_t)(int32_t diff);
+typedef void (*dialog_rotary_cb_t)(int32_t diff, uint16_t dt);
 
 typedef struct {
     lv_obj_t                *obj;
@@ -52,7 +52,7 @@ void dialog_item_voice(dialog_t *dialog, lv_obj_t *obj, const char *name);
  * speaks that item's name and value, as on focus. False if not. */
 bool dialog_say_focused(void);
 
-void dialog_rotary(int32_t diff);
+void dialog_rotary(int32_t diff, uint16_t dt);
 
 #ifdef __cplusplus
 }

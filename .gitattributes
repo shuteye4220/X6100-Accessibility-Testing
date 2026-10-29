@@ -5,3 +5,15 @@
 # x6100_gui. Force LF regardless of the checking-out machine's core.autocrlf
 # setting so this can't silently reintroduce itself on a Windows checkout.
 rootfs/** text eol=lf
+
+# ...but not pictures and other binary files under rootfs/ (SSTV's
+# pictures): eol conversion would change their bytes.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.bmp binary
+*.gif binary
+*.bin binary
+*.wav binary
+*.onnx binary
+*.tflite binary

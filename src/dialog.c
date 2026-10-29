@@ -306,9 +306,9 @@ bool dialog_say_focused(void) {
     return true;
 }
 
-void dialog_rotary(int32_t diff) {
+void dialog_rotary(int32_t diff, uint16_t dt) {
     if (dialog_is_running() && current_dialog->rotary_cb) {
-        current_dialog->rotary_cb(diff);
+        current_dialog->rotary_cb(diff, dt);
     }
 }
 
