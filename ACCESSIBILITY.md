@@ -62,6 +62,19 @@ Readouts and settings:
 
 Typing into a text field (callsign, QTH, CW messages, Wi-Fi password, and the text modes' compose boxes to come) is echoed as set in Settings > Voice > Typing echo (characters by default). The arrows, Home, End, Backspace and Delete say the character you land on or delete.
 
+## JS8
+
+APP, page 3, **JS8** (from mainline). Spoken:
+
+- On opening: "J S 8 window" and the frequency.
+- **Received messages** are read as they arrive, as for RTTY (Settings > Voice > Read decoded text); a message **for you** is said at once, "For you: ...". Heartbeats and SNR reports are not read aloud, but are kept with the rest for **Read decoded** and the keyboard's review keys (voice key + arrows).
+- Turning the knob over the message list reads each row: the message, its SNR and audio frequency ("unsure" for a low-confidence decode); your own rows as "You sent: ...". In the Stations view, the station's row.
+- Lists (Query, Saved messages) read the item you land on; the pop-up menus say their title, the item and "2 of 5".
+- **Compose** says what to type and what is already there; typing is echoed as in any text field.
+- After a transmission: "Sent" or "Transmit stopped". **Nothing is spoken while JS8 (or any digital mode) transmits** - speech would go out on the air.
+- **Speak here** (and its key): the status line - auto modes, heartbeat, new messages, frequency, UTC, time drift, messages heard - and the selected station.
+- Keys whose action has no speech of their own say their label after the press, so a toggle says its new state.
+
 ## Winlink (VARA HF)
 
 APP, page 3, **Winlink** (or a long-press key set to "APP Winlink"). Test builds carry the two programs it runs: **xara**, a VARA HF compatible modem, and **Pat**, the Winlink client. Firmware without them says so when you press Start.

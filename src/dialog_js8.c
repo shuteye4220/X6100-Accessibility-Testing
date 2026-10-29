@@ -53,6 +53,9 @@
 #include "widgets/lv_finder.h"
 #include "js8_wf.h"
 #include "js8_clock.h"
+#include "voice.h"
+#include "voice_decoder.h"
+#include "voice_text.h"
 
 #include <liquid/liquid.h>
 
@@ -1163,6 +1166,72 @@ static bool message_open(bool to_me) {
     return false;
 }
 
+/* ---- Voice --------------------------------------------------------------
+ *
+ * Received messages go to the voice reader (voice_decoder.h): read aloud
+ * as Settings > Voice > Read decoded text says, and kept for "Read
+ * decoded" and the keyboard's review cursor. A message for you is said at
+ * once, "For you: ..."; heartbeats and SNR reports are kept but not read.
+ * The row under the cursor is read as the knob moves over it. Nothing is
+ * said while transmitting (tx_player.c holds speech). */
+static void js8_voice_message(const js8_rx_msg_t *m) {
+    char line[JS8_RX_TEXT_LEN + 16];
+    char spoken[JS8_RX_TEXT_LEN * 3];
+
+    if (m->partial) return;
+    if (m->tx) {
+        snprintf(line, sizeof(line), "You: %s\n", m->text);
+        voice_decoder_add_review(line);
+        return;
+    }
+    snprintf(line, sizeof(line), "%s\n", m->text);
+    if (m->to_me && !m->heartbeat && !m->snr_report) {
+        voice_decoder_add_review(line);
+        voice_text_decoded(m->text, spoken, sizeof(spoken));
+        voice_say_text_fmt("For you: %s", spoken);
+    } else if (m->heartbeat || m->snr_report) {
+        voice_decoder_add_review(line);
+    } else {
+        voice_decoder_add(line, false);
+    }
+}
+
+static void js8_voice_row(uint16_t r) {
+    char spoken[JS8_RX_TEXT_LEN * 3];
+    char text[JS8_RX_TEXT_LEN * 3 + 64];
+
+    if (r >= rows) return;
+    int16_t slot = row_hist[r];
+    if (!view_stations && slot >= 0) {
+        const js8_rx_msg_t *m = &history[slot];
+        voice_text_decoded(m->text, spoken, sizeof(spoken));
+        if (m->tx) {
+            snprintf(text, sizeof(text), "You sent: %s", spoken);
+        } else {
+            snprintf(text, sizeof(text), "%s. %+d decibels, %.0f hertz%s%s", spoken, m->snr, m->freq_hz,
+                     m->low_confidence ? ", unsure" : "", m->partial ? ", still arriving" : "");
+        }
+    } else {
+        const char *cell = lv_table_get_cell_value(table, r, 0);
+        voice_text_decoded(cell ? cell : "", text, sizeof(text));
+    }
+    voice_say_text_fmt("%s", text);
+}
+
+void dialog_js8_say_status(void) {
+    char sel[96] = "";
+    char text[256];
+
+    if (sel_call[0]) {
+        char call[64];
+        voice_text_decoded(sel_call, call, sizeof(call));
+        snprintf(sel, sizeof(sel), " Selected %s.", call);
+    }
+    /* The status line, as shown: auto modes, frequency, UTC, drift, count */
+    snprintf(text, sizeof(text), "J S 8. %s.%s", status ? lv_label_get_text(status) : "", sel);
+    voice_say_requested(text);
+}
+
 static void add_message(const js8_rx_msg_t *msg) {
     js8_rx_msg_t  copy = *msg;
     js8_rx_msg_t *m    = &copy;
@@ -1178,6 +1247,7 @@ static void add_message(const js8_rx_msg_t *msg) {
         map_qrz_add(m->from); /* QRZ on the map (the message list shows it anyway) */
     int existing = m->tx ? -1 : find_partial(m->msg_id);
     if (!m->partial) process_message(m);
+    js8_voice_message(m);
     if (existing >= 0) {
         update_slot(existing, m);
         return;
@@ -1700,6 +1770,7 @@ static void table_key_pre_cb(lv_event_t *e) {
     if (a.y1 < table->coords.y1) lv_obj_scroll_by_bounded(table, 0, table->coords.y1 - a.y1, LV_ANIM_OFF);
     else if (a.y2 > table->coords.y2) lv_obj_scroll_by_bounded(table, 0, table->coords.y2 - a.y2, LV_ANIM_OFF);
     lv_event_send(table, LV_EVENT_VALUE_CHANGED, NULL);
+    js8_voice_row((uint16_t)row);
 }
 
 /* A green bar marks the selected station's rows; station view: draw the
@@ -2674,6 +2745,7 @@ static void ui_tx_done(void *arg) {
     const tx_done_t *done      = arg;
     bool             completed = done->completed;
     if (!completed) add_info_row("TX stopped");
+    voice_say_text_fmt(completed ? "Sent" : "Transmit stopped");
     tx_row_end(completed);
     deliver_end(done->text, completed);
     memset(&tx_status, 0, sizeof(tx_status));
@@ -3363,6 +3435,17 @@ static void compose_open(const char *prefill) {
         };
         lv_textarea_set_placeholder_text(text, placeholders[edit_target]);
     }
+
+    /* What to type, and what is in the field already. */
+    {
+        const char *hint = lv_textarea_get_placeholder_text(text);
+        const char *have = lv_textarea_get_text(text);
+        char        spoken[TX_TEXT_MAX * 3];
+
+        voice_text_decoded(have ? have : "", spoken, sizeof(spoken));
+        voice_say_text_fmt("Compose.%s%s%s%s", hint && *hint ? " " : "", hint ? hint : "",
+                           spoken[0] ? ". " : "", spoken);
+    }
 }
 
 /* ---- Band and screen -------------------------------------------------- */
@@ -3755,6 +3838,11 @@ static void construct_cb(lv_obj_t *parent) {
     buttons_page_t *page = buttons_get_cur_page();
     for (size_t i = 0; page && i < sizeof(page->items) / sizeof(page->items[0]); i++)
         if (page->items[i]) buttons_refresh(page->items[i]);
+
+    /* The window and where it listens; received text starts afresh for
+     * the reader and the review cursor. */
+    voice_decoder_clear();
+    voice_say_prompted_freq_now("J S 8 window", cparam_i_get(cfg.cur.fg_freq()));
 }
 
 static void destruct_cb(void) {
@@ -5811,7 +5899,12 @@ static void js8_prev_page_cb(button_data_t *btn) {
  * scroll redraws the list for every animation frame, which tears on the
  * radio's display. */
 static void list_item_focused_cb(lv_event_t *e) {
-    lv_obj_scroll_to_view(lv_event_get_target(e), LV_ANIM_OFF);
+    lv_obj_t *b = lv_event_get_target(e);
+
+    lv_obj_scroll_to_view(b, LV_ANIM_OFF);
+    /* The item landed on is read (Query, Saved messages...). */
+    const char *label = lv_list_get_btn_text(lv_obj_get_parent(b), b);
+    if (label) voice_say_text_fmt("%s", label);
 }
 
 static lv_obj_t *list_add_item(lv_obj_t *list, const char *label) {

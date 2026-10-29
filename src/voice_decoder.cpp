@@ -125,6 +125,12 @@ void voice_decoder_add(const char *text, bool cw) {
     lv_timer_resume(timer);
 }
 
+void voice_decoder_add_review(const char *text) {
+    if (text && *text) {
+        review.append(text);
+    }
+}
+
 voice::ReviewText &voice_decoder_review() {
     return review;
 }

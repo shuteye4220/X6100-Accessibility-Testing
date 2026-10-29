@@ -37,6 +37,10 @@ typedef enum {
 /* Received text, as it arrives. `cw`: from the CW decoder. */
 void voice_decoder_add(const char *text, bool cw);
 
+/* Kept for "Read decoded" and the review cursor, but not read aloud as it
+ * comes (JS8's heartbeats; what an app announces in its own way). */
+void voice_decoder_add_review(const char *text);
+
 /* Speak the last received text, on request (even with voice mode off). */
 void voice_decoder_read_last();
 

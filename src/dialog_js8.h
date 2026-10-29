@@ -16,6 +16,9 @@ extern "C" {
 
 extern dialog_t *dialog_js8;
 
+/* Speaks the status line, and the selected station (Speak here). */
+void dialog_js8_say_status(void);
+
 /* The callsign the list selection points at, if any (used by
  * tools/js8_ui_harness). */
 bool dialog_js8_selected_call(char *call, unsigned len);

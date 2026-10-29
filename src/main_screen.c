@@ -186,6 +186,10 @@ static void say_here() {
         dialog_winlink_say_status();
         return;
     }
+    if (dialog_type_is_run(dialog_js8)) {
+        dialog_js8_say_status();
+        return;
+    }
     if (dialog_say_focused()) {
         return;
     }
