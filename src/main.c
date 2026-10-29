@@ -44,6 +44,7 @@
 #include "scheduler.h"
 #include "wifi.h"
 #include "usb_devices.h"
+#include "voice.h"
 
 rotary_t  *vol;
 encoder_t *mfk;
@@ -63,6 +64,11 @@ static void handle_sigint(int signum) {
     app_is_running = 0;
 }
 
+
+static void ready_cb(lv_timer_t *t) {
+    (void)t;
+    voice_say_ready();
+}
 
 int main(void) {
 
@@ -186,6 +192,10 @@ int main(void) {
 #else
     // lv_scr_load(main_obj);
 #endif
+
+    /* Started: said once the screen and sound have settled. */
+    lv_timer_t *ready = lv_timer_create(ready_cb, 2000, NULL);
+    lv_timer_set_repeat_count(ready, 1);
 
     int64_t next_loop_time, sleep_time, loop_start_time;
     while (app_is_running) {

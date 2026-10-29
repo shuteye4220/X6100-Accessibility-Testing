@@ -4,7 +4,7 @@ Experimental branch adding spoken feedback (screen-reader style) to the X6100 GU
 
 ## How to try it
 
-Flash the image from [Releases](https://github.com/Jimr9/X6100-Accessibility-Testing/releases) the same way as upstream (see main README). Turn Voice on in Settings.
+Flash the image from [Releases](https://github.com/Jimr9/X6100-Accessibility-Testing/releases) the same way as upstream (see main README). Speech is on from the first start (Voice mode: Always), and once the radio has started it says "Radio ready" and the frequency and mode - a silent start means something is wrong. Voice mode can be set to LCD (only with the screen off) or Off in Settings > Voice, or by long-pressing DFN.
 
 ## One thing worth knowing before you start
 

@@ -47,6 +47,10 @@ bool voice_is_busy();
  * filter width, power, split and lock. Meters: S-meter and the last
  * transmission's power and SWR. */
 void voice_say_status();
+
+/* "Radio ready", then the status: said once the radio has started, so a
+ * silent start means something is wrong. Follows Voice mode. */
+void voice_say_ready();
 void voice_say_meter();
 
 /* The radio's clock and date, as on screen. */

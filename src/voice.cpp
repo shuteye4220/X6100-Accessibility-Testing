@@ -552,7 +552,8 @@ void voice_hold(bool on) {
     }
 }
 
-void voice_say_status() {
+/* VFO, band, frequency, mode, filter, power, split and lock. */
+static std::string status_text() {
     int32_t freq  = cfg.cur.fg_freq()->get();
     bool    vfo_b = cfg.band.current_vfo()->get() == X6100_VFO_B;
 
@@ -576,8 +577,16 @@ void voice_say_status() {
     if (lm_get_freq()) {
         text += " Frequency locked.";
     }
+    return text;
+}
 
-    say_on_demand(text);
+void voice_say_status() {
+    say_on_demand(status_text());
+}
+
+void voice_say_ready() {
+    /* As any announcement: not with Voice mode off. */
+    voice_say_text_fmt("Radio ready. %s", status_text().c_str());
 }
 
 void voice_say_meter() {

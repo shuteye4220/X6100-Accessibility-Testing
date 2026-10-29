@@ -283,7 +283,9 @@ class SettingsManager {
         StorageType::GLOBAL, pending_writes_, &global_params_};
 
     // Voice
-    Parameter<int32_t> p_voice_mode{"voice_mode", VOICE_LCD, {},
+    // Speech on from the start (was VOICE_LCD: only with the screen off, so a
+    // first start was silent). Off or LCD in Settings > Voice, or long-press DFN.
+    Parameter<int32_t> p_voice_mode{"voice_mode", VOICE_ALWAYS, {},
         StorageType::GLOBAL, pending_writes_, {}, &global_params_};
     Parameter<int32_t> p_voice_lang{"voice_lang", 0, 0, VOICES_NUM - 1,
         StorageType::GLOBAL, pending_writes_, &global_params_};
