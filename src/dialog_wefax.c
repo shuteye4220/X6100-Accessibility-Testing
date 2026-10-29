@@ -11,6 +11,7 @@
  */
 
 #include "main_screen.h"
+#include "voice.h"
 #include "dialog_wefax.h"
 #include "wefax/decoder.h"
 #include "wefax/stations.h"
@@ -1614,6 +1615,41 @@ static void check_async_save_completion(void)
  * immediately return to AUTO waiting for the next DWD APT START.
  * On save failure the image/buffer are deliberately kept intact.
  */
+/* ---- Voice: the fax's events are pop-ups, which are read; a fax coming
+ * in also says its lines every WEFAX_SAY_LINES, and Speak here says what
+ * the decoder is doing. */
+#define WEFAX_SAY_LINES 300
+static uint32_t wefax_said_lines = 0;
+
+static void wefax_say_progress(void) {
+    uint32_t n = fax_rows_total;
+
+    if (n < wefax_said_lines) wefax_said_lines = 0; /* a new fax */
+    if (n >= wefax_said_lines + WEFAX_SAY_LINES) {
+        wefax_said_lines = n - n % WEFAX_SAY_LINES;
+        voice_say_text_fmt("Fax, %u lines", (unsigned)wefax_said_lines);
+    }
+}
+
+void dialog_wefax_say_status(void) {
+    const char *what;
+    char        text[128];
+
+    if (!decoder) {
+        what = "stopped";
+    } else switch (wefax_decoder_get_mode(decoder)) {
+        case WEFAX_MODE_AUTO: what = auto_fax_confirmed_seen ? "receiving a fax" : "waiting for a fax to start"; break;
+        case WEFAX_MODE_CONT: what = "manual decoder running"; break;
+        default:              what = "stopped"; break;
+    }
+    if (fax_rows_total > 0) {
+        snprintf(text, sizeof(text), "WeFax, %s, %u lines.", what, (unsigned)fax_rows_total);
+    } else {
+        snprintf(text, sizeof(text), "WeFax, %s.", what);
+    }
+    voice_say_requested(text);
+}
+
 static void auto_finish_fax(void)
 {
     if (!decoder) {
@@ -3251,6 +3287,7 @@ static void update_preview_cb(
         return;
     }
 
+    wefax_say_progress();
 
     uint8_t row[WEFAX_WIDTH];
 

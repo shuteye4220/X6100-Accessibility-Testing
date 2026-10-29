@@ -75,6 +75,16 @@ APP, page 3, **JS8** (from mainline). Spoken:
 - **Speak here** (and its key): the status line - auto modes, heartbeat, new messages, frequency, UTC, time drift, messages heard - and the selected station.
 - Keys whose action has no speech of their own say their label after the press, so a toggle says its new state.
 
+## WeFax and SSTV (pictures)
+
+APP, pages 3 and 4 (from mainline). There's nothing to read in a picture, so these say what is happening:
+
+- Their messages are read as they pop up: "Awaiting WEFAX header", "Fax started", "Fax saved", "SSTV mode detected: Martin M1", "End of SSTV picture detected", "Decoding failed"...
+- **SSTV** also says its status line when it changes ("SSTV Autodecoder is running. Awaiting signal...", "Transmitting Martin M1...") and the picture's progress at 25, 50 and 75 percent.
+- **WeFax** says the lines received every 300 lines of a fax.
+- **Speak here**: SSTV, the status line and progress; WeFax, what the decoder is doing (waiting for a fax, receiving, manual, stopped) and the lines so far.
+- Their lists (saved pictures and faxes, stations, TX pictures) read the row you land on and "3 of 12"; a key whose action shows a message has the message read, not its label.
+
 ## Winlink (VARA HF)
 
 APP, page 3, **Winlink** (or a long-press key set to "APP Winlink"). Test builds carry the two programs it runs: **xara**, a VARA HF compatible modem, and **Pat**, the Winlink client. Firmware without them says so when you press Start.

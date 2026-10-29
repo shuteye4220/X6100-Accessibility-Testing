@@ -21,6 +21,9 @@ bool dialog_wefax_mic_step(int dir);
  * Returns false (key not used) when WEFAX is not open. */
 bool dialog_wefax_vm_toggle(void);
 
+/* Speaks what the decoder is doing and the lines so far (Speak here). */
+void dialog_wefax_say_status(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -54,6 +54,8 @@
 #include <png.h>
 
 #include "audio.h"
+#include "voice.h"
+#include "voice_text.h"
 
 #define SSTV_CANVAS_W 440
 #define SSTV_CANVAS_H 330
@@ -516,9 +518,64 @@ static void update_rx_controls(void)
         buttons_load_page(&btn_page_1);
 }
 
+/* ---- Voice: the status line is said when it changes (not while
+ * transmitting: tx_player.c holds speech), the picture's progress at each
+ * quarter, and Speak here says both. */
+static char sstv_said[256];
+static int  sstv_quarter = -1;
+
+static void sstv_spoken(const char *text, char *out, size_t n) {
+    char  buf[512];
+    char *w = buf;
+
+    voice_text_label(text ? text : "", buf, sizeof(buf));
+    /* The on-screen list dashes ("- Press ...") are not read. */
+    for (const char *r = buf; *r; r++) {
+        if (r[0] == '-' && r[1] == ' ' && (r == buf || r[-1] == ' ')) {
+            r++;
+            continue;
+        }
+        *w++ = *r;
+    }
+    *w = '\0';
+    snprintf(out, n, "%s", buf);
+}
+
+static void sstv_say_change(const char *text) {
+    char spoken[256];
+
+    sstv_spoken(text, spoken, sizeof(spoken));
+    if (!spoken[0] || strcmp(spoken, sstv_said) == 0) return; /* set again unchanged: once */
+    snprintf(sstv_said, sizeof(sstv_said), "%s", spoken);
+    voice_say_text_fmt("%s", spoken);
+}
+
+/* `v` of 1000: "25 percent" and so on as the picture comes in. */
+static void sstv_say_progress(int v) {
+    int q = v / 250;
+
+    if (v <= 0) sstv_quarter = 0;
+    if (q > sstv_quarter && q >= 1 && q <= 3) voice_say_text_fmt("Picture %d percent", q * 25);
+    if (q > sstv_quarter) sstv_quarter = q;
+}
+
+void dialog_sstv_say_status(void) {
+    char text[384];
+    char spoken[256];
+
+    sstv_spoken(status_label ? lv_label_get_text(status_label) : "", spoken, sizeof(spoken));
+    if (progress_bar && !lv_obj_has_flag(progress_bar, LV_OBJ_FLAG_HIDDEN)) {
+        snprintf(text, sizeof(text), "S S T V. %s Progress %d percent.", spoken, (int)lv_bar_get_value(progress_bar) / 10);
+    } else {
+        snprintf(text, sizeof(text), "S S T V. %s", spoken);
+    }
+    voice_say_requested(text);
+}
+
 static void set_status(const char *text)
 {
     if (status_label) lv_label_set_text(status_label, text ? text : "");
+    sstv_say_change(text);
 }
 
 static void set_receiver_ui_stopped(void)
@@ -596,6 +653,7 @@ static void tx_set_status(const char *text)
 {
     lv_obj_t *l = tx_status();
     if (l) lv_label_set_text(l, text ? text : "");
+    sstv_say_change(text);
 }
 
 static void tx_panel_show(bool on)
@@ -1476,6 +1534,7 @@ static void ui_timer_cb(lv_timer_t *timer)
         if (progress_bar) {
             int v=(int)((live_written*1000L)/live_target); if(v<0)v=0; if(v>1000)v=1000;
             lv_bar_set_value(progress_bar,v,LV_ANIM_OFF);
+            sstv_say_progress(v);
         }
     }
 

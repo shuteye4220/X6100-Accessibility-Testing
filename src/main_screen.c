@@ -190,6 +190,14 @@ static void say_here() {
         dialog_js8_say_status();
         return;
     }
+    if (dialog_type_is_run(dialog_wefax)) {
+        dialog_wefax_say_status();
+        return;
+    }
+    if (dialog_type_is_run(dialog_sstv)) {
+        dialog_sstv_say_status();
+        return;
+    }
     if (dialog_say_focused()) {
         return;
     }
@@ -275,8 +283,8 @@ void main_screen_start_app(press_action_t app_action) {
         /* WSPR */
         /* JS8 */
         case ACTION_APP_JS8:
+            // The window says itself, with its frequency (dialog_js8.c).
             dialog_construct(dialog_js8, obj);
-            voice_say_text_fmt("JS8 window");
             break;
 
         /* PSK31 */

@@ -15,6 +15,9 @@ extern dialog_t *dialog_sstv;
 /* Closes the target-callsign virtual keyboard, if open (see dialog_sstv_tx.inc). */
 void dialog_sstv_keyboard_dismiss(void);
 
+/* Speaks the status line and the picture's progress (Speak here). */
+void dialog_sstv_say_status(void);
+
 #ifdef __cplusplus
 }
 #endif
