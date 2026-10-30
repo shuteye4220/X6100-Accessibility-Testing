@@ -172,7 +172,7 @@ These are the default long presses. You can change them in Settings, Interface.
 - **KEY:** nothing.
 - **MSG:** "Audio recorder on" or "Audio recorder off".
 - **DFN:** voice mode.
-- **DFL:** battery voltage.
+- **DFL:** battery info.
 
 ### VOL knob
 
@@ -229,13 +229,14 @@ Readouts speak even with the voice mode off, because you asked for them. Put the
   - In other windows, the item you are on.
   - With RTTY or CW text showing, the last text.
   - Anywhere else, the status.
-- **Battery info:** "Battery voltage 12.1".
+- **Battery info:** the battery, and whether external power is connected and charging: "Battery 7.9 volts, 64 percent. No external power." or "Battery 8.1 volts. External power 12.3 volts, charging."
 
 ## Settings
 
 APP, page 2, F5. You hear "Settings window". F1 to F4 choose the tab: "General", "Interface", "Voice", "Info". Use the MFK as described under MFK knob, and the VOL press to close.
 
 - **General:** clock, backlight, audio gains, line in and out, CESSB, compressor, transverter, TX calibration.
+  - **"Charger"**, near the end: On (the default) charges from external power, Off never charges, and Shadow charges only while the radio is switched off.
 - **Interface:** long presses and hand-mic keys, timeouts, frequency acceleration, spectrum and display options.
 - **Voice:**
   - "Voice mode"

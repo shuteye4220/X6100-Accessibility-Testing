@@ -182,9 +182,29 @@ lv_obj_t * clock_init(lv_obj_t * parent) {
     subject_subscribe_delayed((Subject *)cfg.ui.clock_tx_timeout(), on_clock_param_change, NULL);
 }
 
+/* What the screen's power corner shows, said: "Battery 7.9 volts, 64
+ * percent. No external power." or "Battery 8.1 volts. External power 12.3
+ * volts, charging." As on the screen: external power counts from 3 volts,
+ * and the percentage is given only without it. */
 void clock_say_bat_info() {
+    float   bat, ext;
+    uint8_t cap;
+    bool    chg;
+
+    pthread_mutex_lock(&power_mux);
+    bat = v_bat;
+    ext = v_ext;
+    cap = cap_bat;
+    chg = charging;
+    pthread_mutex_unlock(&power_mux);
+
     voice_sure();
-    voice_say_float("Battery voltage", v_bat);
+    if (ext < 3.0f) {
+        voice_say_text_fmt("Battery %.1f volts, %u percent. No external power.", bat, (unsigned)cap);
+    } else {
+        voice_say_text_fmt("Battery %.1f volts. External power %.1f volts, %s.", bat, ext,
+                           chg ? "charging" : "not charging");
+    }
 }
 
 static void check_time_sync_cb(lv_timer_t * t) {
