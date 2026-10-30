@@ -167,6 +167,45 @@ void dialog_item(dialog_t *dialog, lv_obj_t *obj) {
  * the same voice_say_* functions/convention used everywhere else in the
  * firmware - not a separate accessibility system.
  */
+/* Entering edit mode (a press of the knob) sends FOCUSED again, with the
+ * group now editing: said as "Voice rate 175, editing, steps of 1", so
+ * a press that started editing is told apart from one that did not.
+ * Leaving it (a hold, or the press that closes a dropdown) says the item
+ * plainly again. */
+static bool say_editing(lv_event_t *e, lv_obj_t *obj, const char *name) {
+    lv_group_t *g = lv_obj_get_group(obj);
+
+    if (lv_event_get_code(e) != LV_EVENT_FOCUSED || !g || !lv_group_get_editing(g) || !lv_obj_is_editable(obj)) {
+        return false;
+    }
+    if (lv_obj_check_type(obj, &lv_spinbox_class)) {
+        voice_say_text_fmt("%s %d, editing, steps of %d", name, (int)lv_spinbox_get_value(obj),
+                           (int)lv_spinbox_get_step(obj));
+    } else if (lv_obj_check_type(obj, &lv_slider_class)) {
+        voice_say_text_fmt("%s %d, editing", name, (int)lv_slider_get_value(obj));
+    } else if (lv_obj_check_type(obj, &lv_dropdown_class)) {
+        char buf[64];
+
+        lv_dropdown_get_selected_str(obj, buf, sizeof(buf));
+        voice_say_text_fmt("%s %s, editing", name, buf);
+    } else {
+        return false;
+    }
+    return true;
+}
+
+/* While a spinbox is edited with the knob, each press moves to the next
+ * digit (LVGL's own handler, which runs first): say the new step. */
+static void spinbox_step_voice_cb(lv_event_t *e) {
+    lv_obj_t   *obj   = lv_event_get_target(e);
+    lv_group_t *g     = lv_obj_get_group(obj);
+    lv_indev_t *indev = lv_indev_get_act();
+
+    if (g && lv_group_get_editing(g) && indev && lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
+        voice_say_text_fmt("Steps of %d", (int)lv_spinbox_get_step(obj));
+    }
+}
+
 static void focus_voice_cb(lv_event_t *e) {
     const char *name = (const char *)lv_event_get_user_data(e);
     if (!name) {
@@ -174,6 +213,9 @@ static void focus_voice_cb(lv_event_t *e) {
     }
     lv_obj_t *obj = lv_event_get_target(e);
 
+    if (say_editing(e, obj, name)) {
+        return;
+    }
     if (lv_obj_check_type(obj, &lv_switch_class)) {
         voice_say_bool(name, lv_obj_has_state(obj, LV_STATE_CHECKED));
     } else if (lv_obj_check_type(obj, &lv_dropdown_class)) {
@@ -268,6 +310,9 @@ void dialog_item_voice(dialog_t *dialog, lv_obj_t *obj, const char *name) {
     // See dropdown_scroll_voice_cb() - dropdown needs its own separate
     // listener since VALUE_CHANGED never fires while browsing its list.
     lv_obj_add_event_cb(obj, dropdown_scroll_voice_cb, LV_EVENT_KEY, (void *)name);
+    if (lv_obj_check_type(obj, &lv_spinbox_class)) {
+        lv_obj_add_event_cb(obj, spinbox_step_voice_cb, LV_EVENT_RELEASED, NULL);
+    }
 }
 
 bool dialog_say_focused(void) {
