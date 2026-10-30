@@ -1,5 +1,5 @@
 diff --git a/web/src/config.html b/web/src/config.html
-index 317c76e..e1c0001 100644
+index 317c76e..b38948b 100644
 --- a/web/src/config.html
 +++ b/web/src/config.html
 @@ -22,7 +22,7 @@
@@ -33,11 +33,13 @@ index 317c76e..e1c0001 100644
                            </button>
                          </span>
                        </div>
-@@ -136,14 +136,14 @@
+@@ -135,15 +135,15 @@
+                                     </div>
                                    </div>
                                    <div class="col-sm-1">
-                                     <button class="btn btn-danger btn-sm delete-alias">
+-                                    <button class="btn btn-danger btn-sm delete-alias">
 -                                      <span class="glyphicon glyphicon-remove"></span>
++                                    <button class="btn btn-danger btn-sm delete-alias" aria-label="Delete this alias" title="Delete this alias">
 +                                      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                                      </button>
                                    </div>
@@ -50,9 +52,12 @@ index 317c76e..e1c0001 100644
                              </button>
                            </div>
                          </div>
-@@ -586,12 +586,12 @@
+@@ -584,14 +584,14 @@
+                                     </div>
+                                   </div>
                                  </div>
-                                 <button class="btn btn-danger btn-sm delete-rig"
+-                                <button class="btn btn-danger btn-sm delete-rig"
++                                <button class="btn btn-danger btn-sm delete-rig" aria-label="Delete this rig" title="Delete this rig"
                                    style="margin-left: 10px; margin-top: 10px;">
 -                                  <span class="glyphicon glyphicon-remove"></span>
 +                                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
