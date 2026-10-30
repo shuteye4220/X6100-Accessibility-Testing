@@ -2,13 +2,65 @@
 
 A guide for blind operators to the Xiegu X6100 with the OpenX6100 firmware and this fork's speech. It tells you what you press and what the radio says, not what is on the screen. Quoted text is what you hear.
 
-This guide doesn't give the physical layout of the keys. Get one sighted or tactile tour of the front panel and the hand microphone first, and learn where these are: POWER, LOCK, PTT, the main tuning knob, the VOL knob, the MFK knob (multi-function), F1 to F5, GEN, APP, KEY, MSG, DFN, DFL, the band up and down keys, the mode keys (SSB, CW, AM), PRE, AGC, FST, ATU, A/B and V/M.
+Start with "Finding your way around the radio" to learn where the keys are. The hand microphone's key layout isn't covered yet, so get a sighted or tactile tour of it.
+
+## Finding your way around the radio
+
+This layout is based on Ian Spencer's audio walkaround of the X6100 (spencerweb.net). Hold the radio with the screen facing you. Left and right are as you hold it.
+
+### Front panel
+
+The display fills the middle, from near the top to well down the panel.
+
+- **Below the display:** five keys in a row, **F1** to **F5** from left to right. Their job depends on the page the radio has loaded.
+- **Right of the display:** the loudspeaker at the top, and the large **main tuning knob** below it. Just to the left of the knob, above it, is the small **LOCK** key.
+- **Left of the display:** from the top-left corner, move your finger down and to the right at 45 degrees to reach the **VOL** knob. Going straight down from there you find:
+  1. A small light on the left, which is green when receiving and red when transmitting. To its right is the elongated **POWER** key: hold it about a second to turn the radio on, and again to turn it off.
+  2. A pair of keys: **GEN** on the left, **APP** on the right.
+  3. A pair of keys: **KEY** on the left, **MSG** on the right.
+  4. A pair of keys: **DFN** on the left, **DFL** on the right.
+  5. Below and between DFN and DFL, the **MFK** knob.
+
+### Top edge
+
+From the left end, near the front, there is a square **PTT** key for handheld use, then a small screw head. Further right are two long keys side by side: **band down**, with an arrow to the left, and **band up**. In front of them, toward you, are three small keys: **AM**, **CW**, **SSB**.
+
+Past a second screw head, near the right end, is a block of six keys in two rows of three:
+
+- **Back row, left to right:** **A/B**, **PRE**, **ATU**.
+- **Front row, left to right:** **V/M**, **AGC**, **FST**.
+
+### Left end
+
+- **Top:** the BNC antenna socket.
+- **Below it:** I/Q out, for SDR software on a computer.
+- **Below that, slightly left:** the DC power input, 9 to 15 volts and never more than 15. It powers the radio and charges its battery.
+- **Next to it:** a fold-out stand. There is another at the right end, so the radio can sit tilted on a desk.
+
+### Right end
+
+- **Nearest the front, from the top:**
+  1. The **microSD card slot**, just back from the front panel. Your firmware card goes here.
+  2. A USB-C device port, for a computer.
+  3. A USB-C host port, for a keyboard or mouse.
+- **Further back, from the top:**
+  1. A square RJ45 socket for the hand microphone, level with the card slot.
+  2. 3.5 mm ACC (accessory interface).
+  3. 3.5 mm key jack, for a straight key or paddle.
+  4. 3.5 mm stereo speaker or headphone jack.
+- **Furthest back:** the second fold-out stand.
+
+Some keys work differently in this firmware than in the walkaround, which describes the original firmware:
+- A press of VOL switches what the knob adjusts, rather than stepping through AF, RF and squelch.
+- PRE turns the preamplifier on and off with a press, and the attenuator with a hold.
+
+See Front panel for what each key does here.
 
 ## Getting started
 
 1. **Get the image.** Go to the Releases page of shuteye4220/x6100-accessibility-testing on GitHub. Builds named "Accessibility additions" use the RHVoice voice. Builds named "eSpeak" use eSpeak, which is faster and more robotic. Download `sdcard.img.zip` from the newest build and unzip it.
 2. **Write it to a microSD card.** On Windows, use Rufus or balenaEtcher. On Linux, run `sudo dd if=sdcard.img of=/dev/sdX bs=4M conv=fsync status=progress`, with your card's device in place of sdX. Everything already on the card is erased.
-3. **Start the radio from the card.** Put the card in the radio while it is off, then turn the radio on. The radio is silent while it starts, and the first start takes longer. After a minute or two you hear "Radio ready", then the frequency and mode. If it stays silent for more than three minutes, write the card again.
+3. **Start the radio from the card.** With the radio off, put the card in the microSD slot, at the right end nearest the front. Then hold POWER for about a second. The radio is silent while it starts, and the first start takes longer. After a minute or two you hear "Radio ready", then the frequency and mode. If it stays silent for more than three minutes, write the card again.
 4. **Turn the speech off, or back on.** Hold **DFN**. Each hold moves to the next voice mode and says it:
    - "Voice mode: always"
    - "Voice mode: only with the screen off"
