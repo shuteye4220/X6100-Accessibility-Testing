@@ -75,7 +75,27 @@ See Front panel for what each key does here.
    5. Press the MFK to open the list, turn it to "Speak here", and press it again to choose.
 
    Do the same for "GEN long press" with "Speak status". You can also use "HMic F2 press" with "Speak meters". Press the **VOL** knob to close the window.
-6. **Learn the keys anywhere.** On any page, the readout "Speak keys" tells you what F1 to F5 do.
+6. **Make the voice faster or slower.**
+   1. Press **APP** until you hear "Application page 2".
+   2. Press **F5** ("Settings window"), then **F3** ("Voice").
+   3. Turn the **MFK** until you hear the rate. It is the second item, after "Voice mode":
+      - With eSpeak, "Voice rate, words per minute": 80 to 450, default 175.
+      - With RHVoice, "Voice rate": 50 to 150, default 100.
+   4. Press the MFK. You hear the rate, "editing, steps of 1".
+   5. Turning now changes the rate, and it takes effect at once. For bigger changes, press again for "Steps of 10", and again for "Steps of 100". A fourth press goes back to steps of 1.
+   6. Hold the MFK until you hear the rate without "editing". That ends the change.
+
+   Pitch and volume are the next two items, and work the same way. Press **VOL** to close Settings.
+7. **Learn the keys anywhere.** On any page, the readout "Speak keys" tells you what F1 to F5 do.
+
+### Getting back to the main screen
+
+The main screen is the radio with no window open. The VOL and MFK knobs then change their settings, and F1 to F5 hold a page of settings.
+
+- **Press VOL** to close the window you are in. You hear the name of the page that was there before, such as "Application page 2".
+- **Press GEN** to close whatever is open, from anywhere. You hear a Volume or MFK page, which means you are on the main screen.
+- **"Selection mode" when you press VOL** means you were already on the main screen. Press VOL again to hear "Edit mode", where turning VOL changes the volume.
+- **Speak status** (see Readouts) tells you the frequency and mode once you are there.
 
 Settings are saved on the card. If speech stops entirely and the radio still receives, hold **LOCK** for a soft reset (see Known limits).
 
@@ -163,7 +183,13 @@ Turning it changes the volume, or whichever setting is on the knob, and says the
 On the main screen it works like VOL, for the settings on the MFK pages (RIT, zoom and others): a press switches between "Selection mode" and "Edit mode". In windows (Settings, Wi-Fi, lists) it moves:
 
 1. Turn to move between items. Each one says its name and value.
-2. Press to change an item: turn to pick a value, which is said, then press again to confirm.
+2. Press to change an item. How it works depends on the kind of item:
+   - **On or off:** the press switches it, and the new state is said.
+   - **A list:** the press opens it ("editing"). Turn to hear the choices, and press to choose one.
+   - **A number:** the press starts editing ("editing, steps of 1"), and turning changes the value. Each further press makes the step ten times bigger ("Steps of 10", "Steps of 100", then back to 1). Hold the MFK to finish. You hear the value again without "editing".
+   - **A slider:** the press starts editing. Turn to change it, and press again to finish.
+
+   Changes take effect as you make them; there is nothing to save.
 
 ### On-screen keyboard
 
