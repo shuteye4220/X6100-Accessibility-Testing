@@ -183,9 +183,11 @@ lv_obj_t * clock_init(lv_obj_t * parent) {
 }
 
 /* What the screen's power corner shows, said: "Battery 7.9 volts, 64
- * percent. No external power." or "Battery 8.1 volts. External power 12.3
- * volts, charging." As on the screen: external power counts from 3 volts,
- * and the percentage is given only without it. */
+ * percent. No external power." or "Battery 7.4 volts, 62 percent.
+ * External power 13.6 volts, charging." As on the
+ * screen, external power counts from 3 volts; unlike it, the percentage is
+ * said with external power too (the radio's estimate, which moves while
+ * charging when the voltage barely does). */
 void clock_say_bat_info() {
     float   bat, ext;
     uint8_t cap;
@@ -202,8 +204,8 @@ void clock_say_bat_info() {
     if (ext < 3.0f) {
         voice_say_text_fmt("Battery %.1f volts, %u percent. No external power.", bat, (unsigned)cap);
     } else {
-        voice_say_text_fmt("Battery %.1f volts. External power %.1f volts, %s.", bat, ext,
-                           chg ? "charging" : "not charging");
+        voice_say_text_fmt("Battery %.1f volts, %u percent. External power %.1f volts, %s.", bat,
+                           (unsigned)cap, ext, chg ? "charging" : "not charging");
     }
 }
 
