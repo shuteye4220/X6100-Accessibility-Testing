@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdio>
 #include <sstream>
+#include <algorithm>
 #include <vector>
 
 namespace voice {
@@ -448,6 +449,106 @@ std::string memory_text(const MemoryInfo &m) {
         out += buf;
     }
     return out + ".";
+}
+
+std::vector<SignalPeak> find_peaks(const float *v, int n, float above_db, int min_sep, int max, int *total,
+                                   int skip_from, int skip_to) {
+    std::vector<SignalPeak> out;
+
+    *total = 0;
+    if (!v || n < 8 || max <= 0) {
+        return out;
+    }
+
+    /* The noise floor: the median, which most signals don't move. */
+    std::vector<float> sorted(v, v + n);
+
+    std::nth_element(sorted.begin(), sorted.begin() + n / 2, sorted.end());
+
+    float floor_db = sorted[n / 2];
+
+    /* Local maxima over the threshold (a flat top counts once, at its
+     * first bin). */
+    std::vector<SignalPeak> cand;
+
+    for (int i = 2; i < n - 2; i++) {
+        if (i >= skip_from && i <= skip_to) {
+            continue;
+        }
+        float a = v[i] - floor_db;
+
+        if (a >= above_db && v[i] > v[i - 1] && v[i] >= v[i + 1]) {
+            cand.push_back({i, a});
+        }
+    }
+    std::stable_sort(cand.begin(), cand.end(),
+                     [](const SignalPeak &x, const SignalPeak &y) { return x.above_db > y.above_db; });
+
+    /* Strongest first, each hiding the weaker ones close to it (the same
+     * signal's other bumps). */
+    std::vector<SignalPeak> kept;
+
+    for (const SignalPeak &c : cand) {
+        bool near = false;
+
+        for (const SignalPeak &k : kept) {
+            if (std::abs(c.bin - k.bin) < min_sep) {
+                near = true;
+                break;
+            }
+        }
+        if (!near) {
+            kept.push_back(c);
+        }
+    }
+    *total = (int)kept.size();
+    if ((int)kept.size() > max) {
+        kept.resize(max);
+    }
+    return kept;
+}
+
+static std::string offset_text(int32_t d) {
+    int32_t a = std::abs(d);
+
+    if (a < 150) {
+        return "on frequency";
+    }
+
+    std::string dir = d > 0 ? " above" : " below";
+
+    if (a < 1000) {
+        return std::to_string((a + 5) / 10 * 10) + " hertz" + dir;
+    }
+    return number_text(a / 1000.0f, 1) + " kilohertz" + dir;
+}
+
+std::string signals_text(const std::vector<Signal> &signals, int total, int32_t dial_hz, int32_t span_hz) {
+    if (signals.empty()) {
+        return "No signals over the noise, within " + number_text(span_hz / 2000.0f, 1) +
+               " kilohertz either side.";
+    }
+
+    std::string out;
+    int         n = (int)signals.size();
+
+    if (total > n) {
+        out = std::to_string(n) + " strongest of " + std::to_string(total) + " signals. ";
+    } else {
+        out = n == 1 ? "1 signal. " : std::to_string(n) + " signals. ";
+    }
+    for (const Signal &s : signals) {
+        std::string f = freq_text(s.freq_hz);
+        size_t      bar = f.find('|');
+
+        if (bar != std::string::npos) {
+            f.replace(bar, 1, " ");
+        }
+        out += f + ", " + offset_text(s.freq_hz - dial_hz) + ", " + std::to_string((int)std::lround(s.above_db)) +
+               " decibels over the noise. ";
+    }
+    out.pop_back();
+    return out;
 }
 
 } // namespace voice

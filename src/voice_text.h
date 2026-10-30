@@ -16,6 +16,7 @@
 
 #ifdef __cplusplus
 #include <string>
+#include <vector>
 
 namespace voice {
 
@@ -72,6 +73,31 @@ long meminfo_kb(const std::string &text, const char *key);
 /* "Memory, 312 megabytes free of 494. This program uses 85. Swap, 20
  * megabytes used of 247, compressed into 7." */
 std::string memory_text(const MemoryInfo &m);
+
+/* Signals in a spectrum (Speak signals). */
+struct SignalPeak {
+    int   bin;
+    float above_db; /* above the noise floor */
+};
+
+/* The peaks of `v` (dB, n bins) standing at least `above_db` over the noise
+ * floor (the median), strongest first, at most `max`, none within
+ * `min_sep` bins of a stronger one. The first and last two bins are left
+ * out (edges), and so are `skip_from`..`skip_to` (-1: none). `*total`: how
+ * many there were before `max` cut the list. */
+std::vector<SignalPeak> find_peaks(const float *v, int n, float above_db, int min_sep, int max, int *total,
+                                   int skip_from = -1, int skip_to = -1);
+
+struct Signal {
+    int32_t freq_hz;
+    float   above_db;
+};
+
+/* "3 strongest of 7 signals. 14. 0 76, 1.2 kilohertz above, 22 decibels over
+ * the noise. ..." Offsets from `dial_hz`: "on frequency" within 150 Hz.
+ * With none: "No signals over the noise, within 50 kilohertz either side."
+ * (`span_hz` is the whole spectrum's width.) */
+std::string signals_text(const std::vector<Signal> &signals, int total, int32_t dial_hz, int32_t span_hz);
 
 } // namespace voice
 

@@ -28,6 +28,7 @@ These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mi
 - **Speak keys**: the current page's name and what each function key does - handy in windows such as Settings or FT8.
 - **Read decoded**: the last few hundred characters received by the RTTY or CW decoder.
 - **Speak time**: the radio's clock and date.
+- **Speak signals**: the three strongest signals in the spectrum shown, each with its frequency, how far from the frequency you are on, and how far over the noise ("1.2 kilohertz above, 22 decibels over the noise"); the spectrum's peak hold counts, so a voice between words is found. Zoom the spectrum in for detail.
 - **Speak memory**: how much memory is free, how much this program uses, and swap: how much is used, and in zram (compressed swap in memory) what it takes once compressed. Handy for seeing how a new app such as JS8 fares.
 - **Speak here**: whatever matters where you are, so one key does for most things. In the FT8 window, the selected message; in the GPS window, the summary; in any other window (Settings, Wi-Fi...), the item you are on and its value; with RTTY or the CW decoder showing, the last text received; anywhere else, the status.
 
@@ -62,7 +63,7 @@ Reading received text (RTTY, and the text modes to come) with a review cursor - 
 Readouts and settings:
 
 - **Voice key + Space**: speak here (as above)
-- **Voice key + S / M / T / B / U / K**: status, meters, time, battery, memory, function keys
+- **Voice key + S / M / T / B / U / G / K**: status, meters, time, battery, memory, signals, function keys
 - **Voice key + E**: typing echo - off, characters, words, characters and words
 - **Voice key + A**: reading received text aloud - off, text modes, all including CW
 - **Voice key + H**: these keys

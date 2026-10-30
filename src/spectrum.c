@@ -101,6 +101,8 @@ static lv_grad_dsc_t grad_dsc;
 /* Cross-thread flags set by the DSP thread (spectrum_data) / config callbacks
  * and consumed by spectrum_process() on the main thread. */
 static int s_data_ready = 0;
+/* get_time() of the last frame (spectrum_snapshot()). */
+static uint64_t s_last_data_ms = 0;
 static int s_cond_dirty = 1;
 
 static void on_zoom_changed(Subject *subj, void *user_data);
@@ -472,7 +474,32 @@ void spectrum_data(const float *data_buf, uint16_t size, bool tx, uint32_t base_
     }
     prev_fft_dec = fft_dec;
 
+    __atomic_store_n(&s_last_data_ms, now, __ATOMIC_RELEASE);
     __atomic_store_n(&s_data_ready, 1, __ATOMIC_RELEASE);
+}
+
+bool spectrum_snapshot(float *out, size_t n, uint32_t *base_hz, int32_t *span_hz) {
+    uint64_t last = __atomic_load_n(&s_last_data_ms, __ATOMIC_ACQUIRE);
+
+    if (n != SPECTRUM_NFFT || spectrum_tx || last == 0 || get_time() - last > 3000) {
+        return false;
+    }
+
+    /* Written by the DSP thread meanwhile: a frame may be half new, which
+     * is no matter for a readout. */
+    const bool peaks = __atomic_load_n(&s_peak_enabled, __ATOMIC_ACQUIRE);
+
+    for (size_t i = 0; i < n; i++) {
+        float v = spectrum_buf[i];
+
+        if (peaks && spectrum_peak[i].val > v) {
+            v = spectrum_peak[i].val;
+        }
+        out[i] = v;
+    }
+    *base_hz = (uint32_t)__atomic_load_n(&cur_base_lo_freq, __ATOMIC_ACQUIRE);
+    *span_hz = width_hz;
+    return *base_hz != 0;
 }
 
 void spectrum_clear() {

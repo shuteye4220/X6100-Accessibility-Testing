@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "voice_text.h"
 
@@ -145,4 +146,44 @@ TEST_CASE("the C helpers never overrun", "[voice][text]") {
     CHECK(std::strlen(buf) == 7);
     voice_text_label(nullptr, buf, sizeof(buf));
     CHECK(std::string(buf) == "");
+}
+
+TEST_CASE("signals are found over the noise, strongest first", "[voice][signals]") {
+    std::vector<float> v(800, -120.0f);
+
+    /* A wide signal with two bumps, a weaker narrow one, one under the
+     * threshold, and a spike in the middle to be skipped. */
+    v[100] = -90.0f; v[101] = -85.0f; v[102] = -88.0f; v[106] = -87.0f;
+    v[500] = -100.0f;
+    v[600] = -115.0f;
+    v[400] = -60.0f;
+
+    int  total = 0;
+    auto p     = find_peaks(v.data(), (int)v.size(), 10.0f, 24, 3, &total, 399, 401);
+
+    REQUIRE(total == 2);
+    REQUIRE(p.size() == 2);
+    CHECK(p[0].bin == 101);
+    CHECK(std::lround(p[0].above_db) == 35);
+    CHECK(p[1].bin == 500);
+
+    auto one = find_peaks(v.data(), (int)v.size(), 10.0f, 24, 1, &total, 399, 401);
+    CHECK(total == 2);
+    CHECK(one.size() == 1);
+
+    /* The edges are left out; a flat spectrum has none. */
+    std::vector<float> flat(800, -110.0f);
+    flat[0] = -50.0f;
+    CHECK(find_peaks(flat.data(), 800, 10.0f, 24, 3, &total).empty());
+    CHECK(total == 0);
+    CHECK(find_peaks(nullptr, 800, 10.0f, 24, 3, &total).empty());
+}
+
+TEST_CASE("signals are said with their offset", "[voice][signals]") {
+    CHECK(signals_text({}, 0, 14074000, 100000) == "No signals over the noise, within 50 kilohertz either side.");
+    CHECK(signals_text({{14075200, 22.4f}}, 1, 14074000, 100000) ==
+          "1 signal. 14. 0 75 point 2, 1.2 kilohertz above, 22 decibels over the noise.");
+    CHECK(signals_text({{14074100, 30.0f}, {14073500, 12.0f}}, 5, 14074000, 25000) ==
+          "2 strongest of 5 signals. 14. 0 74 point 1, on frequency, 30 decibels over the noise. "
+          "14. 0 73 point 5, 500 hertz below, 12 decibels over the noise.");
 }

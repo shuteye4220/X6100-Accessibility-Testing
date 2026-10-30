@@ -223,6 +223,7 @@ Readouts speak even with the voice mode off, because you asked for them. Put the
 - **Read decoded:** the last text received (RTTY, CW decoder, JS8).
 - **Speak time:** clock and date.
 - **Speak memory:** free memory, what the firmware uses, and swap.
+- **Speak signals:** the three strongest signals in the spectrum around you, each with its frequency, how far it is from where you're tuned, and how far it stands over the noise: "3 strongest of 7 signals. 14. 0 76, 1.2 kilohertz above, 22 decibels over the noise. ...". It covers what the screen's spectrum shows, 50 kilohertz either side at the widest. Zoom in for more detail (Spectrum Zoom, on GEN's MFK page 1). A voice between words still counts, because the readout uses the spectrum's peak hold. Nearby bumps closer than 3 percent of the width are taken as one signal. While transmitting, and in JS8 (which has its own waterfall), it says "No spectrum here".
 - **Speak here:** whatever matters where you are:
   - In FT8, the selected message.
   - In JS8, the status and the selected station.
@@ -256,7 +257,7 @@ APP, page 2, F5. You hear "Settings window". F1 to F4 choose the tab: "General",
 The keyboard works like a screen reader's. The voice key is **Caps Lock** or **Insert**: hold it and press:
 
 - **Space:** speak here.
-- **S, M, T, B, U, K:** status, meters, time, battery, memory, keys.
+- **S, M, T, B, U, G, K:** status, meters, time, battery, memory, signals, keys.
 - **R:** the last text received.
 - **Left and Right:** previous or next character of received text.
 - **Control+Left and Control+Right:** previous or next word.

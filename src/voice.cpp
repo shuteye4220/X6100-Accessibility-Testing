@@ -32,6 +32,7 @@ extern "C" {
 #include "radio.h"
 #include "cw_tune_ui.h"
 #include "wifi.h"
+#include "spectrum.h"
 }
 
 
@@ -734,6 +735,45 @@ void voice_say_memory() {
     m.zram_used_kb   = (long)(used / 1024);
 
     say_on_demand(voice::memory_text(m));
+}
+
+/* Peaks this far over the noise floor count as signals. */
+#define SIGNALS_ABOVE_DB 10.0f
+#define SIGNALS_SAID     3
+
+void voice_say_signals() {
+    static float spec[SPECTRUM_NFFT];
+    uint32_t     base;
+    int32_t      span;
+
+    if (!spectrum_snapshot(spec, SPECTRUM_NFFT, &base, &span) || span <= 0) {
+        say_on_demand("No spectrum here.");
+        return;
+    }
+
+    /* Peaks closer than 3 percent of the width shown are taken as one
+     * signal: 3 kilohertz at the widest, less as you zoom in. The middle
+     * bins are the receiver's own centre (a spike, not a signal). */
+    int min_sep = SPECTRUM_NFFT * 3 / 100;
+    int mid     = SPECTRUM_NFFT / 2;
+    int total   = 0;
+
+    std::vector<voice::SignalPeak> peaks =
+        voice::find_peaks(spec, SPECTRUM_NFFT, SIGNALS_ABOVE_DB, min_sep, SIGNALS_SAID, &total, mid - 1, mid + 1);
+
+    /* Said to the nearest 100 hertz, or finer when the bins are. */
+    int32_t bin_hz = span / SPECTRUM_NFFT;
+    int32_t round  = bin_hz >= 100 ? 100 : bin_hz >= 10 ? 10 : 1;
+
+    std::vector<voice::Signal> signals;
+
+    for (const voice::SignalPeak &p : peaks) {
+        int64_t f = (int64_t)base + (int64_t)(p.bin - mid) * span / SPECTRUM_NFFT;
+
+        f = (f + round / 2) / round * round;
+        signals.push_back({(int32_t)f, p.above_db});
+    }
+    say_on_demand(voice::signals_text(signals, total, cfg.cur.fg_freq()->get(), span));
 }
 
 /***** Pop-up messages *****/

@@ -39,6 +39,14 @@ void spectrum_set_enabled(bool enabled);
 void spectrum_set_markers(int32_t from_hz, int32_t to_hz);
 void spectrum_clear_markers(void);
 
+/* For Speak signals: a copy of the spectrum as drawn (the trace, or the
+ * peak hold where higher, so a voice between words still counts), dB per
+ * bin, SPECTRUM_NFFT bins; the frequency of the middle bin and the width
+ * shown. Bin i is at base_hz + (i - SPECTRUM_NFFT / 2) * span_hz /
+ * SPECTRUM_NFFT. False while transmitting, or with no fresh data (an app
+ * that stops the spectrum, such as JS8). */
+bool spectrum_snapshot(float *out, size_t n, uint32_t *base_hz, int32_t *span_hz);
+
 /* Direct-render entry point. Call from the main loop between lv_timer_handler()
  * and drm_flip(). Renders the spectrum into the DRM primary back-buffer when new
  * data arrived or the render conditions changed. Returns true if it rendered. */

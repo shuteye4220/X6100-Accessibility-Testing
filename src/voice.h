@@ -59,6 +59,10 @@ void voice_say_time();
 /* Free memory, this program's share, and swap (zram) use. */
 void voice_say_memory();
 
+/* Speak signals: the strongest signals in the spectrum shown, where they
+ * are from the frequency you are on, and how far over the noise. */
+void voice_say_signals();
+
 /* An on-screen pop-up message (msg.c) as it is shown. Spoken only if no
  * announcement was asked for around the time it was made (the code that
  * made it already speaks), not while transmitting, and not a countdown or

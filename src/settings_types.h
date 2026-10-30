@@ -75,6 +75,7 @@ typedef enum {
     ACTION_VOICE_TIME    = 204, /* the radio's clock and date */
     ACTION_VOICE_HERE    = 205, /* what matters where you are: see main_screen.c */
     ACTION_VOICE_MEMORY  = 206, /* free memory, this program's, swap */
+    ACTION_VOICE_SIGNALS = 207, /* the strongest signals in the spectrum */
 } press_action_t;
 
 typedef enum {
