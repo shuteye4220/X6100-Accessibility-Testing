@@ -168,6 +168,12 @@ static void make_voice_behavior(SettingsPage &page) {
     lv_obj_center(obj);
 
     page.row++;
+    page.label("Speech to Bluetooth");
+
+    obj = page.switch_bool(page.grid, *cfg.voice.bt_speech(), "Speech to Bluetooth headphones");
+    lv_obj_set_grid_cell(obj, LV_GRID_ALIGN_START, 1, 6, LV_GRID_ALIGN_CENTER, page.row, 1);
+
+    page.row++;
 }
 
 /***** PAGE *****/

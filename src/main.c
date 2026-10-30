@@ -46,6 +46,7 @@
 #include "wifi.h"
 #include "usb_devices.h"
 #include "voice.h"
+#include "voice_bt.h"
 #include "sstv_resources.h"
 
 rotary_t  *vol;
@@ -196,6 +197,8 @@ int main(void) {
 #else
     // lv_scr_load(main_obj);
 #endif
+
+    voice_bt_init();
 
     /* Started: said once the screen and sound have settled. */
     lv_timer_t *ready = lv_timer_create(ready_cb, 2000, NULL);

@@ -168,6 +168,7 @@ static ParamInt *cfg_voice_interrupt_delay_ms(void) { return param_ref<ParamInt>
 static ParamInt *cfg_voice_freq_interrupt_delay_ms(void) { return param_ref<ParamInt>(cfg_instance().p_voice_freq_interrupt_delay_ms); }
 static ParamInt *cfg_voice_keys(void) { return param_ref<ParamInt>(cfg_instance().p_voice_keys); }
 static ParamInt *cfg_voice_popups(void) { return param_ref<ParamInt>(cfg_instance().p_voice_popups); }
+static ParamInt *cfg_voice_bt_speech(void) { return param_ref<ParamInt>(cfg_instance().p_voice_bt_speech); }
 static ParamInt *cfg_voice_decoded(void) { return param_ref<ParamInt>(cfg_instance().p_voice_decoded); }
 static ParamInt *cfg_voice_echo(void) { return param_ref<ParamInt>(cfg_instance().p_voice_echo); }
 static ParamInt *cfg_voice_espeak_voice(void) { return param_ref<ParamInt>(cfg_instance().p_voice_espeak_voice); }
@@ -431,6 +432,7 @@ extern "C" const cfg_refs_t cfg = {
         .freq_interrupt_delay_ms = &cfg_voice_freq_interrupt_delay_ms,
         .keys = &cfg_voice_keys,
         .popups = &cfg_voice_popups,
+        .bt_speech = &cfg_voice_bt_speech,
         .decoded = &cfg_voice_decoded,
         .echo = &cfg_voice_echo,
         .espeak_voice = &cfg_voice_espeak_voice,

@@ -25,6 +25,7 @@ extern "C" {
 
 #include "audio.h"
 #include "bt_audio.h"
+#include "voice_bt.h"
 #include "recorder.h"
 #include "msg.h"
 #include "meter.h"
@@ -61,8 +62,19 @@ static std::atomic<bool> stop_requested{false};
  * speech would go out on the air. Nothing is said meanwhile. */
 static std::atomic<bool> held{false};
 
+/* Speech going only into Bluetooth headphones - listening on, or Speech
+ * to Bluetooth (voice_bt.c) - never reaches the radio's audio, which the
+ * transmitter takes: the hold and the other on-air checks don't apply. */
+static std::atomic<bool> speaking_off_air{false};
+
+static bool off_air_now(void) {
+    char sink[96];
+
+    return voice_bt_sink(sink, sizeof(sink)) || bt_audio_state() == BT_AUDIO_ON;
+}
+
 static bool should_stop(void) {
-    return stop_requested || held;
+    return stop_requested || (held && !speaking_off_air);
 }
 
 static char                         buf[VOICE_TEXT_MAX + 1];
@@ -81,6 +93,8 @@ static bool                         sure = false;
 static size_t                       prompt_len = 0;
 
 static void * say_thread(void *arg) {
+    speaking_off_air = off_air_now();
+
     // Poll rather than a single usleep(delay) so an interrupting
     // announcement (see voice_stop_current()) can cut a still-waiting
     // delayed announcement short instead of blocking the caller for up
@@ -91,7 +105,7 @@ static void * say_thread(void *arg) {
         }
         usleep(10000);
     }
-    if (held) {
+    if (should_stop()) {
         return NULL;
     }
 
@@ -120,20 +134,31 @@ static void * say_thread(void *arg) {
     strcpy(prev, buf);
 
     /* Bluetooth listening: speak into the headphones, the radio's
-     * speaker is silent. */
+     * speaker is silent. Speech to Bluetooth: into the headphones, the
+     * speaker going on with the receiver. */
     char bt_sink[96];
-    bool bt = bt_audio_playback_begin(bt_sink, sizeof(bt_sink));
+    bool bt        = bt_audio_playback_begin(bt_sink, sizeof(bt_sink));
+    bool bt_speech = !bt && voice_bt_sink(bt_sink, sizeof(bt_sink));
+    bool spoken    = false;
 
-    if (!bt) {
-        audio_set_play_mode(AUDIO_PLAY_ON);
+    if (bt || bt_speech) {
+        speaking_off_air = true;
+        /* The engine chosen at build time (voice_synth.h). */
+        spoken = voice_synth_speak(ptr, bt_sink, should_stop);
+        if (bt) {
+            bt_audio_playback_end();
+        }
     }
-    /* The engine chosen at build time (voice_synth.h). */
-    voice_synth_speak(ptr, bt ? bt_sink : nullptr, should_stop);
-    if (!bt) {
-        audio_set_play_mode(AUDIO_PLAY_OFF);
-    }
-    if (bt) {
-        bt_audio_playback_end();
+
+    /* Through the radio: as before, or when the headphones have just gone
+     * (their stream didn't open - said again, here). Not while held. */
+    if (!bt && !spoken && !stop_requested) {
+        speaking_off_air = false;
+        if (!should_stop()) {
+            audio_set_play_mode(AUDIO_PLAY_ON);
+            voice_synth_speak(ptr, nullptr, should_stop);
+            audio_set_play_mode(AUDIO_PLAY_OFF);
+        }
     }
 
     run = false;
@@ -209,11 +234,9 @@ bool voice_enable() {
     have_request      = true;
     request_count++;
 
-    if (held) {
-        return false;
-    }
-
-    if (recorder_is_on()) {
+    /* Into headphones only, nothing reaches the radio's audio: neither
+     * the transmitter nor the recorder hears it. */
+    if ((held || recorder_is_on()) && !off_air_now()) {
         return false;
     }
 
@@ -498,7 +521,7 @@ static void say_on_demand(const std::string &text) {
     have_request      = true;
     request_count++;
 
-    if (recorder_is_on() || on_air() || held) {
+    if ((recorder_is_on() || on_air() || held) && !off_air_now()) {
         return;
     }
 
@@ -815,7 +838,7 @@ void voice_say_popup(const char *text, uint32_t created_tick) {
     if (!text || !*text || !cfg.voice.popups()->get()) {
         return;
     }
-    if (radio_get_state() != RADIO_RX) {
+    if (radio_get_state() != RADIO_RX && !off_air_now()) {
         return; /* would go out on the air with the headset PTT */
     }
 

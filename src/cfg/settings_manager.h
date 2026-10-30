@@ -316,6 +316,10 @@ class SettingsManager {
     // Speak on-screen pop-up messages that have no announcement of their own
     Parameter<int32_t> p_voice_popups{"voice_popups", true, 0, 1,
         StorageType::GLOBAL, pending_writes_, &global_params_};
+    /* Speech into connected Bluetooth headphones, never the radio's audio
+     * (voice_bt.c), so it goes on while transmitting. */
+    Parameter<int32_t> p_voice_bt_speech{"voice_bt_speech", false, 0, 1,
+        StorageType::GLOBAL, pending_writes_, &global_params_};
     // Read decoded text aloud: 0 off, 1 text modes (not CW), 2 all
     Parameter<int32_t> p_voice_decoded{"voice_decoded", 1, 0, 2,
         StorageType::GLOBAL, pending_writes_, &global_params_};

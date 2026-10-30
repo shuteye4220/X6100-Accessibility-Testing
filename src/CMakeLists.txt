@@ -34,7 +34,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     ft8_udp.c
     dialog_msg_voice.c dialog_recorder.c dialog_qth.c dialog_callsign.c digi_menu.c
     textarea_window.c cw_encoder.c buttons.cpp vol.cpp recorder.c
-    voice.cpp voice_text.cpp voice_decoder.cpp voice_review.cpp voice_keys.cpp cw_tune_ui.c adif.c qso_log.c scheduler.cpp
+    voice.cpp voice_bt.c voice_text.cpp voice_decoder.cpp voice_review.cpp voice_keys.cpp cw_tune_ui.c adif.c qso_log.c scheduler.cpp
     format.c msg_cw_store.c
     dialog_wifi.c wifi.cpp controls.cpp usb_devices.cpp
     bt_audio.c

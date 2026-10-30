@@ -107,7 +107,7 @@ Settings are saved on the card. If speech stops entirely and the radio still rec
 - **Frequencies** are said in megahertz with the zeros after the point kept: 14.074 is "14. 0 74", 14.005 is "14. 0 0 5".
 - **Callsigns and abbreviations** are spelled out: "C Q D E V E 3 X Y Z".
 - **Pop-up messages** are read aloud ("Wrong WiFi password"). Turn this off in Settings, Voice, "Speak pop-up messages".
-- **Silence on transmit.** Nothing is spoken while a digital mode (FT8, JS8, SSTV, Winlink and others), a voice message or a Bluetooth headset is transmitting, because the speech would go out on the air. What was missed is said afterwards, or on request.
+- **Silence on transmit.** Nothing is spoken while a digital mode (FT8, JS8, SSTV, Winlink and others), a voice message or a Bluetooth headset is transmitting, because the speech would go out on the air. What was missed is said afterwards, or on request. To keep speech going while transmitting, connect Bluetooth headphones and turn on "Speech to Bluetooth" (see Voice settings). Speech then goes only to the headphones, where it can't reach the transmitter.
 - **Two presses for some actions.** Recording, playing back, sending a message, beaconing, SWR scan and auto-tune take two presses. The first press tells you what will happen ("Ready to record, press again to start"). The second press does it silently.
 - **Unused keys.** An empty function key says "Not used".
 
@@ -251,6 +251,7 @@ APP, page 2, F5. You hear "Settings window". F1 to F4 choose the tab: "General",
   - "Speak pop-up messages"
   - "Read decoded text": off, text modes only, or all including CW
   - "Typing echo": off, characters, words, or both
+  - "Speech to Bluetooth headphones", the last item, off by default: with it on and Bluetooth headphones connected, all speech goes to the headphones and nowhere else. The radio's speaker, or headphones in its own jack, keep the receiver audio. Speech never reaches the radio's audio path, so it goes on while transmitting, recording or keying a digital mode. Without headphones connected, speech goes through the radio as usual, silent on transmit. The radio looks for the headphones every three seconds, so allow a moment after connecting them. Bluetooth adds a fraction of a second of delay to the speech.
 
 ## Keyboard (USB or Bluetooth)
 
@@ -318,7 +319,7 @@ APP page 3, F2. You hear "Wi-Fi window". The keys are On/Off, Scan, Connect, Cha
 
 ### Bluetooth
 
-APP page 3, F3. It opens with a summary. It has three pages, and the Status key repeats the summary. Turning the MFK reads each device ("2 of 5"). Connections, pairing codes (digit by digit) and failures are said. With Bluetooth listening on, the speech goes to the headphones.
+APP page 3, F3. It opens with a summary. It has three pages, and the Status key repeats the summary. Turning the MFK reads each device ("2 of 5"). Connections, pairing codes (digit by digit) and failures are said. With Bluetooth listening on, the speech goes to the headphones. To send only the speech to the headphones and keep the receiver on the speaker, use "Speech to Bluetooth headphones" in Settings, Voice instead.
 
 ### JS8
 

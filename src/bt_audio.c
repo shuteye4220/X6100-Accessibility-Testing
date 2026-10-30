@@ -1761,6 +1761,14 @@ int bt_audio_set_mic_gain(int db)
     return db;
 }
 
+void bt_audio_find_sink(char *out, size_t out_sz)
+{
+    if (out == NULL || out_sz == 0) {
+        return;
+    }
+    find_sink(out, out_sz);
+}
+
 bool bt_audio_playback_begin(char *sink, size_t sink_sz)
 {
     bool on;

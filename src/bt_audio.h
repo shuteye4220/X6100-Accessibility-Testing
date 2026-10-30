@@ -116,6 +116,11 @@ bool bt_audio_headset_ptt(void);
 bool bt_audio_playback_begin(char *sink, size_t sink_sz);
 void bt_audio_playback_end(void);
 
+/* The headphones or speaker connected now, as listening would pick them
+ * (empty if none), whether listening is on or not. Runs pactl, so it
+ * blocks for a moment: not for the LVGL thread. */
+void bt_audio_find_sink(char *out, size_t out_sz);
+
 #ifdef __cplusplus
 }
 #endif
