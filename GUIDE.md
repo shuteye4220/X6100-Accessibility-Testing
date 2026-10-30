@@ -43,6 +43,8 @@ Past a second screw head, near the right end, is a block of six keys in two rows
   1. The **microSD card slot**, just back from the front panel. Your firmware card goes here.
   2. A USB-C device port, for a computer.
   3. A USB-C host port, for a keyboard or mouse.
+
+  Neither USB-C port charges the radio or powers it. Charging is only through the DC input on the left end.
 - **Further back, from the top:**
   1. A square RJ45 socket for the hand microphone, level with the card slot.
   2. 3.5 mm ACC (accessory interface).
