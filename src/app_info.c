@@ -15,8 +15,10 @@
 #include "keyboard.h"
 #include "radio.h"
 #include "styles.h"
+#include "voice.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #define INFO_W          795
 #define INFO_H          350
@@ -157,6 +159,99 @@ static bool prev_editing = false;
 static buttons_page_t *prev_page = NULL;
 static char credits[1024];
 
+/* ---- speech ------------------------------------------------------------------- */
+
+/* The text read aloud a section at a time: each section is "HEADING. text",
+ * built from the body and the credits with the colour markers left out and
+ * line breaks as spaces. The knob moves between sections. */
+#define INFO_MAX_SECTIONS 16
+
+static char        spoken[4096];
+static const char *section[INFO_MAX_SECTIONS];
+static int         n_sections;
+static int         cur_section;
+
+/* Appends `text` to spoken[] at *pos, starting a new section at each
+ * heading (H()), and within a long section where it gets long: speech
+ * takes at most VOICE_TEXT_MAX at a time. */
+#define INFO_SECTION_SPLIT 280
+#define INFO_SECTION_MAX   400
+
+static bool section_start(size_t *n)
+{
+    if (n_sections == INFO_MAX_SECTIONS) {
+        return false;
+    }
+    if (*n > 0 && spoken[*n - 1] != '\0') {
+        spoken[(*n)++] = '\0';
+    }
+    section[n_sections++] = spoken + *n;
+    return true;
+}
+
+static void sections_add(const char *text, size_t *pos)
+{
+    const char *heading = "#6aaeff ";
+    size_t      hlen    = strlen(heading);
+    size_t      n       = *pos;
+
+    for (const char *c = text; *c && n + 4 < sizeof(spoken); c++) {
+        if (strncmp(c, heading, hlen) == 0) {
+            if (!section_start(&n)) {
+                break;
+            }
+            c += hlen - 1;
+            continue;
+        }
+        if (n_sections == 0 && !section_start(&n)) {
+            break;
+        }
+        if (*c == '#') { /* the end of a heading */
+            spoken[n++] = '.';
+            continue;
+        }
+        if (*c == '\n') {
+            if (n > 0 && spoken[n - 1] != ' ' && spoken[n - 1] != '\0') {
+                spoken[n++] = ' ';
+            }
+            continue;
+        }
+        /* A long section: a new part after the sentence that passes
+         * INFO_SECTION_SPLIT, or at a space past INFO_SECTION_MAX. */
+        size_t len = (size_t)(spoken + n - section[n_sections - 1]);
+
+        if (*c == ' ' && n > 0 &&
+            ((spoken[n - 1] == '.' && len > INFO_SECTION_SPLIT) || len > INFO_SECTION_MAX)) {
+            if (!section_start(&n)) {
+                break;
+            }
+            continue;
+        }
+        spoken[n++] = *c;
+    }
+    spoken[n] = '\0';
+    *pos      = n;
+}
+
+static void sections_build(const char *body_text, const char *credits_text)
+{
+    size_t pos = 0;
+
+    n_sections  = 0;
+    cur_section = 0;
+    sections_add(body_text, &pos);
+    sections_add(credits_text, &pos); /* starts at its own heading */
+}
+
+static void say_section(const char *before)
+{
+    if (n_sections == 0) {
+        return;
+    }
+    voice_say_text_fmt("%s%sPart %d of %d. %s", before, before[0] ? ". " : "", cur_section + 1,
+                       n_sections, section[cur_section]);
+}
+
 static void close_btn_cb(button_data_t *d) { (void)d; app_info_close(); }
 
 static button_data_t btn_title = { .type = BTN_TEXT, .label = "(Info)", .press = NULL };
@@ -179,6 +274,14 @@ static void key_cb(lv_event_t *e)
     case LV_KEY_ESC:            app_info_close(); return;
     default:                    return;
     }
+    /* Speech moves a section at a time, staying at the ends. */
+    int next = cur_section + dir;
+
+    if (next >= 0 && next < n_sections) {
+        cur_section = next;
+    }
+    say_section("");
+
     lv_coord_t step = INFO_STEP_LINES * lv_font_get_line_height(&sony_22);
     lv_coord_t room = dir > 0 ? lv_obj_get_scroll_bottom(body) : lv_obj_get_scroll_y(body);
     if (room > step) room = step;
@@ -251,10 +354,17 @@ void app_info_open(lv_obj_t *dialog_obj, app_info_id_t id)
     snprintf(credits, sizeof(credits), credits_fmt, names[id], extras[id]);
     text_label(body, credits);
 
+    sections_build(bodies[id], credits);
+
+    char before[64];
+
+    snprintf(before, sizeof(before), "%s info. Turn the knob for each part", names[id]);
+
     lv_group_add_obj(keyboard_group, body);
     lv_group_focus_obj(body);
     lv_group_set_editing(keyboard_group, true);
     buttons_load_page(&page_info);
+    say_section(before);
 }
 
 static void destroy(void)

@@ -23,7 +23,7 @@ Menus and settings are otherwise navigated with the same knob used for everythin
 
 These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mic F1/F2 key, in Settings > Interface. They speak even with Voice mode off, since they were asked for.
 
-- **Speak status**: VFO, band, frequency, mode, filter width, power, and split or frequency lock when on.
+- **Speak status**: VFO, band, frequency, mode, filter width, power, and split or frequency lock when on; then the indicator row - AGC, and preamp, attenuator, NR, NB, notch, tuner, RIT/XIT with offsets and Wi-Fi when on - and the other VFO's frequency. ("Radio ready" at start-up says only the first part.)
 - **Speak meters**: S-meter; in CW with CW peak on, how far the received tone is from your key tone ("50 hertz above your tone"); and the power, SWR and ALC of your last transmission.
 - **Speak keys**: the current page's name and what each function key does - handy in windows such as Settings or FT8.
 - **Read decoded**: the last few hundred characters received by the RTTY or CW decoder.
@@ -41,6 +41,8 @@ These can be put on any long-press key (GEN, APP, KEY, MSG, DFN, DFL) or hand-mi
 - **Channels window** (APP page 4, or the hand-mic V/M): on opening and as you move, the selected channel - "40m net, 7. 0 75, L S B, 3 of 12" - and "Moving ..." while dragging one; Speak here repeats it.
 - **Broadcast info** (hand-mic GENE): the station, "2 of 3" when there are more, the frequency, hours, language and target; "No station scheduled"; and Save as channel (NW), "Channel saved, ...".
 - **App key pages** (JS8, SSTV, WeFax) say their names, as FT8's do.
+- **Info windows** (WeFax and SSTV's Info key): read a part at a time - "Part 2 of 9", the heading and its text - the knob moving between parts.
+- **Battery info**: battery voltage and percentage, and whether external power is there, its voltage, and charging.
 - **GPS window**: a summary on opening (fix, grid, satellites, UTC time), the grid in phonetics; Summary, Grid, Position, Time and Sats keys; the multi-function knob reads one row at a time and its press repeats the summary; a gained or lost fix, or a new grid, is announced.
 
 ## With a keyboard (USB or Bluetooth)

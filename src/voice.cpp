@@ -31,6 +31,7 @@ extern "C" {
 #include "tx_info.h"
 #include "radio.h"
 #include "cw_tune_ui.h"
+#include "wifi.h"
 }
 
 
@@ -563,7 +564,9 @@ void voice_hold(bool on) {
 }
 
 /* VFO, band, frequency, mode, filter, power, split and lock. */
-static std::string status_text() {
+/* `full`: also the indicators and the other VFO (Speak status); without,
+ * the short form said at start-up. */
+static std::string status_text(bool full) {
     int32_t freq  = cfg.cur.fg_freq()->get();
     bool    vfo_b = cfg.band.current_vfo()->get() == X6100_VFO_B;
 
@@ -587,16 +590,66 @@ static std::string status_text() {
     if (lm_get_freq()) {
         text += " Frequency locked.";
     }
+    if (!full) {
+        return text;
+    }
+
+    /* What the screen's indicator row shows: the ones that are on (AGC
+     * always, as it is always shown), RIT and XIT with their offsets. */
+    switch (cfg.cur.agc()->get()) {
+        case x6100_agc_off:  text += " A G C off."; break;
+        case x6100_agc_slow: text += " A G C slow."; break;
+        case x6100_agc_fast: text += " A G C fast."; break;
+        case x6100_agc_auto: text += " A G C auto."; break;
+        default: break;
+    }
+    if (cfg.cur.pre()->get()) {
+        text += " Preamp on.";
+    }
+    if (cfg.cur.att()->get()) {
+        text += " Attenuator on.";
+    }
+    if (cfg.dsp.nr()->get()) {
+        text += " Noise reduction on.";
+    }
+    if (cfg.dsp.nb()->get()) {
+        text += " Noise blanker on.";
+    }
+    if (cfg.dsp.dnf()->get()) {
+        text += " Notch on.";
+    }
+    if (cfg.atu_enabled()->get()) {
+        text += " Tuner on.";
+    }
+
+    int32_t rit = cfg.rit()->get();
+    int32_t xit = cfg.xit()->get();
+
+    if (rit) {
+        text += " R I T " + std::string(rit > 0 ? "plus " : "minus ") + std::to_string(std::abs(rit)) + " hertz.";
+    }
+    if (xit) {
+        text += " X I T " + std::string(xit > 0 ? "plus " : "minus ") + std::to_string(std::abs(xit)) + " hertz.";
+    }
+    if (wifi_get_status() == WIFI_CONNECTED) {
+        text += " Wi-Fi connected.";
+    }
+
+    /* The other VFO, shown on the screen above the frequency. */
+    char other[64];
+
+    voice_text_freq(cfg.cur.bg_freq()->get(), other, sizeof(other));
+    text += std::string(vfo_b ? " V F O A " : " V F O B ") + other + ".";
     return text;
 }
 
 void voice_say_status() {
-    say_on_demand(status_text());
+    say_on_demand(status_text(true));
 }
 
 void voice_say_ready() {
     /* As any announcement: not with Voice mode off. */
-    voice_say_text_fmt("Radio ready. %s", status_text().c_str());
+    voice_say_text_fmt("Radio ready. %s", status_text(false).c_str());
 }
 
 void voice_say_meter() {

@@ -217,7 +217,7 @@ The key names below are the firmware's. The names printed on your microphone may
 
 Readouts speak even with the voice mode off, because you asked for them. Put them on long presses or hand-mic keys in Settings, Interface, or use a keyboard.
 
-- **Speak status:** VFO, band, frequency, mode, filter, power, and split or lock if on.
+- **Speak status:** VFO, band, frequency, mode, filter, power, and split or lock if on. Then what the screen's indicator row shows: the AGC setting, and whichever of preamp, attenuator, noise reduction, noise blanker, notch, tuner, RIT or XIT (with its offset) and Wi-Fi are on. Last, the other VFO's frequency.
 - **Speak meters:** the S-meter. In CW with CW peak on, how far the signal is from your tone ("50 hertz above your tone"). Also power, SWR and ALC of your last transmission.
 - **Speak keys:** the page name and what F1 to F5 do.
 - **Read decoded:** the last text received (RTTY, CW decoder, JS8).
@@ -231,7 +231,7 @@ Readouts speak even with the voice mode off, because you asked for them. Put the
   - In other windows, the item you are on.
   - With RTTY or CW text showing, the last text.
   - Anywhere else, the status.
-- **Battery info:** the battery, and whether external power is connected and charging: "Battery 7.9 volts, 64 percent. No external power." or "Battery 8.1 volts. External power 12.3 volts, charging."
+- **Battery info:** the battery, and whether external power is connected and charging: "Battery 7.9 volts, 64 percent. No external power." or "Battery 7.4 volts, 62 percent. External power 13.6 volts, charging." While charging, the percentage is the thing to watch: the voltage stays close to 7.4 for most of a charge.
 
 ## Settings
 
@@ -280,7 +280,7 @@ APP page 1, F2. You hear "Teletype window". The keys are Rate, Shift, Center and
 
 ### FT8 and FT4
 
-APP page 1, F3. It opens with the mode and frequency ("F T 8, 14. 0 74"). Turn the MFK through the messages. Speak here reads the selected one. Press the MFK on a message to answer it: "Next transmit, VE3XYZ K1ABC FN42". You also hear "Q S O saved with VE3XYZ, sent -10, received -12".
+APP page 1, F3. It opens with the mode and frequency ("F T 8, 14. 0 74"). Turning the MFK reads each message with its signal report, and your own as "You sent". Speak here repeats the selected one. Press the MFK on a message to answer it: "Next transmit, VE3XYZ K1ABC FN42". You also hear "Q S O saved with VE3XYZ, sent -10, received -12".
 
 - **Page 1:** "Show all stations" or "Show C Q only", "Mode F T 4" or "F T 8", TX CQ and TX call ("TX call enabled", "TX C Q disabled").
 - **Page 2:** "Hold frequency", "Auto", force QSO save.
@@ -331,7 +331,7 @@ APP page 3, F4. You hear "J S 8 window" and the frequency. F1 goes through six p
 
 ### WeFax
 
-APP page 3, F5. You hear "WeFax window". It has four pages ("WeFax page 1" to "page 4"). The decoder's messages are read: "Awaiting WEFAX header", "Fax started", "Fax saved". During a fax you hear the lines received every 300 lines. Speak here gives what it is doing and the lines so far. The lists (stations, the fax browser) read the row and "3 of 12". With WeFax open, the hand-mic UP and DOWN go through its stations, and V/M opens its stations list.
+APP page 3, F5. You hear "WeFax window". It has four pages ("WeFax page 1" to "page 4"). The decoder's messages are read: "Awaiting WEFAX header", "Fax started", "Fax saved". During a fax you hear the lines received every 300 lines. Speak here gives what it is doing and the lines so far. The lists (stations, the fax browser) read the row and "3 of 12". With WeFax open, the hand-mic UP and DOWN go through its stations, and V/M opens its stations list. The Info key (page 4) reads WeFax's help a part at a time (see SSTV).
 
 ### SSTV
 
@@ -342,6 +342,8 @@ APP page 4, F2. You hear "SSTV window". It has three pages ("S S T V page 1" to 
 - "End of SSTV picture detected" or "Decoding failed".
 
 The picture lists read the row and "3 of 12".
+
+The Info key (page 3) opens SSTV's help. It starts reading the first part: "SSTV info. Turn the knob for each part. Part 1 of 9...". Turn the MFK for the next or previous part. Press the MFK or VOL to close it.
 
 ### Channels
 
