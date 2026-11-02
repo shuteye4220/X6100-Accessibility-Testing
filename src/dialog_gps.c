@@ -609,9 +609,10 @@ static void construct_cb(lv_obj_t *parent) {
         gps_update(false);
     }
 
-    char text[256];
+    char text[256], opening[280];
     summary_text(text, sizeof(text));
-    voice_say_text_fmt("GPS window. %s", text);
+    snprintf(opening, sizeof(opening), "GPS window. %s", text);
+    buttons_say_window(opening);
 }
 
 static void destruct_cb() {

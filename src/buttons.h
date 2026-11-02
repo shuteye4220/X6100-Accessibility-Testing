@@ -95,6 +95,12 @@ buttons_page_t *buttons_get_cur_page();
 /* Speak the current page's name and what each key does, on request. */
 void            buttons_say_keys();
 
+/* A window opening: its name, then its keys as a page shows them (when
+ * Read function keys is on), as one utterance, so neither cuts off the
+ * other. For windows whose first key is one of its own rather than a page
+ * key, which buttons_load_page() doesn't announce. */
+void            buttons_say_window(const char *name);
+
 #ifdef __cplusplus
 }
 #endif

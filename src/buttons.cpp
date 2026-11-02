@@ -724,6 +724,21 @@ void buttons_say_keys() {
     voice_say_requested(text.empty() ? "No keys." : text.c_str());
 }
 
+void buttons_say_window(const char *name) {
+    std::string text = name ? name : "";
+
+    if (cur_page) {
+        std::string page = page_spoken(cur_page, cfg.voice.keys()->get());
+
+        if (!page.empty()) {
+            text += (text.empty() ? "" : ". ") + page;
+        }
+    }
+    if (!text.empty()) {
+        voice_say_text_fmt("%s", text.c_str());
+    }
+}
+
 static void buttons_load_page_impl(buttons_page_t *page, bool announce) {
     if (!page) {
         LV_LOG_ERROR("NULL pointer to buttons page");
@@ -870,6 +885,16 @@ void buttons_press(uint8_t n, bool hold) {
     }
     if (btn_data->disabled) {
         LV_LOG_USER("Button %s disabled", lv_label_get_text(btn_data->disp_btn->label));
+        // Greyed out on screen; said here, or the press is silent.
+        const char *label = btn_data->type == BTN_TEXT_FN && btn_data->label_fn ? btn_data->label_fn()
+                                                                                : btn_data->label;
+        if (!hold) {
+            if (label && *label) {
+                voice_say_text_fmt("%s, disabled", voice::label_text(label).c_str());
+            } else {
+                voice_say_text_fmt("Not available now");
+            }
+        }
         return;
     }
     if (hold) {
@@ -893,6 +918,10 @@ void buttons_press(uint8_t n, bool hold) {
                                                                                         : btn_data->label;
                 if (label && *label) {
                     voice_say_text_fmt("%s", voice::label_text(label).c_str());
+                } else {
+                    // A key whose label is blank just now (Wi-Fi's Connect
+                    // with no network picked, say): blank on screen too.
+                    voice_say_text_fmt("Not available now");
                 }
             }
         } else {

@@ -237,17 +237,17 @@ void main_screen_start_app(press_action_t app_action) {
             buttons_load_page(&buttons_page_rtty);
             rtty_set_state(RTTY_RX);
             panel_update_visibility(true);
-            voice_say_text_fmt("Teletype window");
+            buttons_say_window("Teletype window");
             break;
 
         case ACTION_APP_SETTINGS:
             dialog_construct(dialog_settings, obj);
-            voice_say_text_fmt("Settings window");
+            buttons_say_window("Settings window");
             break;
 
         case ACTION_APP_SWRSCAN:
             dialog_construct(dialog_swrscan, obj);
-            voice_say_text_fmt("SWR scan window");
+            buttons_say_window("SWR scan window");
             break;
 
         case ACTION_APP_FT8:
@@ -264,12 +264,12 @@ void main_screen_start_app(press_action_t app_action) {
 
         case ACTION_APP_RECORDER:
             dialog_construct(dialog_recorder, obj);
-            voice_say_text_fmt("Audio recorder window");
+            buttons_say_window("Audio recorder window");
             break;
 
         case ACTION_APP_WIFI:
             dialog_construct(dialog_wifi, obj);
-            voice_say_text_fmt("Wi-Fi window");
+            dialog_wifi_say_open();
             break;
 
         case ACTION_APP_BT:
@@ -296,13 +296,13 @@ void main_screen_start_app(press_action_t app_action) {
         /* WeFax */
         case ACTION_APP_WEFAX:
             dialog_construct(dialog_wefax, obj);
-            voice_say_text_fmt("WeFax window");
+            buttons_say_window("WeFax window");
             break;
 
         /* SSTV */
         case ACTION_APP_SSTV:
             dialog_construct(dialog_sstv, obj);
-            voice_say_text_fmt("SSTV window");
+            buttons_say_window("SSTV window");
             break;
 
         default:

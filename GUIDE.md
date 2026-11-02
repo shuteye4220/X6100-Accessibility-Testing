@@ -109,7 +109,8 @@ Settings are saved on the card. If speech stops entirely and the radio still rec
 - **Pop-up messages** are read aloud ("Wrong WiFi password"). Turn this off in Settings, Voice, "Speak pop-up messages".
 - **Silence on transmit.** Nothing is spoken while a digital mode (FT8, JS8, SSTV, Winlink and others), a voice message or a Bluetooth headset is transmitting, because the speech would go out on the air. What was missed is said afterwards, or on request. To keep speech going while transmitting, connect Bluetooth headphones and turn on "Speech to Bluetooth" (see Voice settings). Speech then goes only to the headphones, where it can't reach the transmitter.
 - **Two presses for some actions.** Recording, playing back, sending a message, beaconing, SWR scan and auto-tune take two presses. The first press tells you what will happen ("Ready to record, press again to start"). The second press does it silently.
-- **Unused keys.** An empty function key says "Not used".
+- **Unused keys.** An empty function key says "Not used". A key that does nothing at the moment, blank or greyed out on screen, says "Not available now" (or its name and "disabled"). Wi-Fi's Connect does this until you pick a network.
+- **Windows say their keys.** As a window opens you hear its name, then, with "Read function keys" on, what F1 to F5 do.
 
 ## Front panel
 
@@ -315,7 +316,11 @@ APP page 2, F3 and F4. You hear "QTH window" and "Callsign window". Type on the 
 
 ### Wi-Fi
 
-APP page 3, F2. You hear "Wi-Fi window". The keys are On/Off, Scan, Connect, Change password and Delete. Turning the MFK reads each network: "Home, known, connected, signal 80 percent, I P address 192.168.1.40". You also hear "Scanning for networks", "Scan complete, 5 networks found", "Enter password for Home", "Connecting to Home", "Wifi Connected, I P address ...", and "Incorrect password".
+APP page 3, F2. You hear "Wi-Fi window", whether it is connected, and its address: "Wi-Fi window, connected, I P address 192 dot 168 dot 1 dot 40". Then, with "Read function keys" on, the keys.
+
+The keys: F1 Wi-Fi on or off, F2 Scan, F3 Connect (Disconnect when connected), F4 Change password and F5 Delete. F3 to F5 only work once a network is picked with the MFK, and say "Not available now" until then; F4 and F5 only for a network the radio already knows.
+
+To join a network: F1 to turn Wi-Fi on if it's off, F2 to scan, turn the MFK to the network, F3 Connect, then type the password on the keyboard and press Enter. Turning the MFK reads each network: "Home, known, connected, signal 80 percent, I P address 192.168.1.40". You also hear "Scanning for networks", "Scan complete, 5 networks found", "Enter password for Home", "Connecting to Home", "Wifi Connected, I P address ...", and "Incorrect password".
 
 ### Bluetooth
 
@@ -360,11 +365,21 @@ APP page 4, F3, or the hand-mic V/M. You hear "Channels window" and the selected
 
 APP page 4, F4, in test builds that carry the xara modem and Pat. It opens with "Winlink window. Stopped. Press Start." You read and write mail on Pat's web page, from a phone or computer on the same Wi-Fi.
 
-- **F1 Start or Stop.** Start sets USB digital and at most 5 watts. Your callsign must be set first.
-- **F2** sets the bandwidth: 500, 2300 or 2750.
-- **F3 Network** is off each time the window opens. When on, Pat's page is at the radio's address, port 8080, and the window says the address. **Anyone on that network can then use your Winlink account and key your radio**, so use it only on your own network.
-- **F4 Status:** also the MFK press, and Speak here.
-- **Page 2:** TX level, and speeds "Registered" or "Free".
+- **F1** is the page key: "Winlink page 1" and "page 2".
+- **F2 Start or Stop.** Start sets USB digital and at most 5 watts. Your callsign must be set first. Pat runs only while started.
+- **F3** sets the bandwidth: 500, 2300 or 2750.
+- **F4 Network** is off each time the window opens. When on, Pat's page is at the radio's address, port 8080, and the window says the address. **Anyone on that network can then use your Winlink account and key your radio**, so use it only on your own network.
+- **F5 Status:** also the MFK press, and Speak here.
+- **Page 2:** F2 TX level, and F3 speeds "Registered" or "Free".
+
+To open Pat from a phone or computer:
+1. Connect the radio to your Wi-Fi.
+2. Open the Winlink window (APP page 4, F4).
+3. Press F4. You hear "Network access on", then Pat's address and port. (If Pat is already running, it restarts itself with the new setting.)
+4. Press F2 Start.
+5. Press F5 Status to hear it again: "Pat's web page is at 192 dot 168 dot 1 dot 40, port 8080". In the browser, type the address with the port after a colon: http://192.168.1.40:8080
+
+Pat stops when you press Stop or close the window, so leave the Winlink window open while you use it.
 
 You hear "Calling VE3XYZ", "Connected to VE3XYZ" and "Disconnected". Turning the MFK reads recent events, newest first.
 

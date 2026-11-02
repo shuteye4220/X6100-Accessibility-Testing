@@ -12,6 +12,10 @@
 
 extern dialog_t *dialog_wifi;
 
+/* Says the window's name, whether it's connected (and its address), and
+ * its keys. Called once the window is open. */
+void dialog_wifi_say_open(void);
+
 // void dialog_wifi_run_cb(lv_event_t * e);
 // void dialog_wifi_scale_cb(lv_event_t * e);
 // void dialog_wifi_span_cb(lv_event_t * e);

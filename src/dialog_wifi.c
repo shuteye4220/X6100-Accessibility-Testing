@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "lvgl/lvgl.h"
 
 #include "wifi.h"
@@ -230,7 +231,59 @@ static void construct_cb(lv_obj_t *parent) {
     lv_group_set_editing(keyboard_group, true);
 
     subscription = lv_msg_subscribe(MSG_WIFI_STATE_CHANGED, wifi_state_changed_cb, NULL);
+    // The state as the window opens is in its opening announcement
+    // (dialog_wifi_say_open()); only changes from here on are spoken, or
+    // they'd cut that announcement off.
+    last_spoken_wifi_status = wifi_get_status();
+    ip_announce_pending     = false;
     lv_msg_send(MSG_WIFI_STATE_CHANGED, NULL);
+}
+
+void dialog_wifi_say_open(void) {
+    char        text[96];
+    const char *state;
+
+    switch (wifi_get_status()) {
+    case WIFI_OFF:
+        state = "Wi-Fi off";
+        break;
+    case WIFI_STARTING:
+        state = "Wi-Fi starting";
+        break;
+    case WIFI_CONNECTING:
+        state = "connecting";
+        break;
+    case WIFI_CONNECTED:
+        state = "connected";
+        break;
+    default:
+        state = "not connected";
+    }
+
+    char  ip_address[16] = "";
+    char  gateway[16]    = "";
+    char *ip_addr_p      = ip_address;
+    char *gateway_p      = gateway;
+
+    if (wifi_get_status() == WIFI_CONNECTED && wifi_get_ipaddr(&ip_addr_p, &gateway_p) && ip_address[0]) {
+        /* "192.168.1.20" -> "192 dot 168 dot 1 dot 20", to write down. */
+        char   spoken[64];
+        size_t o = 0;
+
+        for (const char *p = ip_address; *p && o + 6 < sizeof(spoken); p++) {
+            if (*p == '.') {
+                memcpy(spoken + o, " dot ", 5);
+                o += 5;
+            } else {
+                spoken[o++] = *p;
+            }
+        }
+        spoken[o] = '\0';
+        snprintf(text, sizeof(text), "Wi-Fi window, %s, I P address %s", state, spoken);
+    } else {
+        snprintf(text, sizeof(text), "Wi-Fi window, %s", state);
+    }
+    buttons_say_window(text);
 }
 
 static void destruct_cb() {
