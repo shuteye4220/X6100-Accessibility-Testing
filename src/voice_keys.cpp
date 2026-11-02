@@ -63,6 +63,7 @@ static const char *help_text =
     "Space, what matters here. S, status. M, meters. T, time. B, battery. U, memory. G, signals. K, function keys. "
     "E, typing echo. A, reading received text aloud. "
     "H, this help. "
+    "Without Caps Lock, F1 to F5 are the keys under the screen; hold one, or add Shift, for a long press. "
     "Tap Control to stop speech. Double tap Caps Lock for caps lock.";
 
 static bool voice_active() {
@@ -135,6 +136,63 @@ static bool command(uint16_t code, bool repeat) {
     return true;
 }
 
+/* F1 to F5 on the keyboard are the five keys under the screen: a tap is
+ * a press, holding it (or Shift with it) a long press, as on the radio. */
+static const uint32_t fkey_long_ms = 600;
+
+static int      fkey_down      = -1;   /* 0..4 while one is down */
+static uint32_t fkey_since     = 0;
+static bool     fkey_long_done = false;
+
+/* Pressed after this read of the keyboard, not during it: a press can open
+ * or close a window, which changes the input group being read. */
+static void fkey_async(void *arg) {
+    uintptr_t v = (uintptr_t)arg;
+
+    buttons_press((uint8_t)(v & 0xff), (v >> 8) != 0);
+}
+
+static void fkey_fire(int idx, bool hold) {
+    lv_async_call(fkey_async, (void *)(uintptr_t)((unsigned)idx | (hold ? 0x100u : 0u)));
+}
+
+/* True if `code` was one of F1 to F5, taken here. */
+static bool fkey(uint16_t code, int value) {
+    if (code < KEY_F1 || code > KEY_F5) {
+        return false;
+    }
+
+    int idx = code - KEY_F1;
+
+    switch (value) {
+        case 1:
+            fkey_down      = idx;
+            fkey_since     = lv_tick_get();
+            fkey_long_done = shift_held;
+            if (shift_held) {
+                fkey_fire(idx, true);
+            }
+            break;
+
+        case 2:
+            if (fkey_down == idx && !fkey_long_done && lv_tick_elaps(fkey_since) >= fkey_long_ms) {
+                fkey_long_done = true;
+                fkey_fire(idx, true);
+            }
+            break;
+
+        default:
+            if (fkey_down == idx) {
+                if (!fkey_long_done) {
+                    fkey_fire(idx, false);
+                }
+                fkey_down = -1;
+            }
+            break;
+    }
+    return true;
+}
+
 bool voice_keys_pre(uint16_t code, int value, bool *toggle_caps) {
     *toggle_caps = false;
 
@@ -169,6 +227,11 @@ bool voice_keys_pre(uint16_t code, int value, bool *toggle_caps) {
         } else if (voice_key_held) {
             command(code, true);
         }
+        return true;
+    }
+
+    /* The screen keys, voice or not; with the voice key, F1 is help. */
+    if (!(voice_key_held && value == 1 && voice_active()) && fkey(code, value)) {
         return true;
     }
 

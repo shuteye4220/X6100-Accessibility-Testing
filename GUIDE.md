@@ -271,6 +271,8 @@ The keyboard works like a screen reader's. The voice key is **Caps Lock** or **I
 - **A:** reading text aloud.
 - **H:** help on these keys.
 
+**F1 to F5** on the keyboard are the five keys under the screen: a tap presses one, and holding it (about half a second), or Shift with it, is a long press, as on the radio. With the voice key, F1 is help instead.
+
 Tap **Control** to stop speech. Double-tap Caps Lock for a real caps lock. Page Up and Page Down change band, F switches to frequency entry, and Scroll Lock locks the frequency. "Keyboard connected" or "Keyboard disconnected" tells you it was found.
 
 ## Apps
@@ -320,7 +322,9 @@ APP page 3, F2. You hear "Wi-Fi window", whether it is connected, and its addres
 
 The keys: F1 Wi-Fi on or off, F2 Scan, F3 Connect (Disconnect when connected), F4 Change password and F5 Delete. F3 to F5 only work once a network is picked with the MFK, and say "Not available now" until then; F4 and F5 only for a network the radio already knows.
 
-To join a network: F1 to turn Wi-Fi on if it's off, F2 to scan, turn the MFK to the network, F3 Connect, then type the password on the keyboard and press Enter. Turning the MFK reads each network: "Home, known, connected, signal 80 percent, I P address 192.168.1.40". You also hear "Scanning for networks", "Scan complete, 5 networks found", "Enter password for Home", "Connecting to Home", "Wifi Connected, I P address ...", and "Incorrect password".
+To join a network: F1 to turn Wi-Fi on if it's off, F2 to scan, turn the MFK to the network, F3 Connect, then type the password on the keyboard and press Enter.
+
+Turning the MFK reads each network: "Home, known, connected, signal 80 percent, I P address 192.168.1.40". You also hear "Scanning for networks", "Scan complete, 5 networks found", "Enter password for Home", "Connecting to Home", "Wifi Connected, I P address ...", and "Incorrect password".
 
 ### Bluetooth
 
