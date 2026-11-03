@@ -271,7 +271,7 @@ The keyboard works like a screen reader's. The voice key is **Caps Lock** or **I
 - **A:** reading text aloud.
 - **H:** help on these keys.
 
-**F1 to F5** on the keyboard are the five keys under the screen: a tap presses one, and holding it (about half a second), or Shift with it, is a long press, as on the radio. With the voice key, F1 is help instead.
+**F1 to F5** on the keyboard are the five keys under the screen: a tap presses one, and holding it (about half a second), or Shift with it, is a long press, as on the radio. With the voice key, F1 is help instead. In the JS8 window, **Alt 1 to Alt 0** send its saved messages 1 to 10.
 
 Tap **Control** to stop speech. Double-tap Caps Lock for a real caps lock. Page Up and Page Down change band, F switches to frequency entry, and Scroll Lock locks the frequency. "Keyboard connected" or "Keyboard disconnected" tells you it was found.
 
@@ -339,6 +339,7 @@ APP page 3, F4. You hear "J S 8 window" and the frequency. F1 goes through six p
 - **Menus** say their title, then the item and "2 of 5".
 - **Compose** says what to type and what is already there.
 - **After sending:** "Sent" or "Transmit stopped".
+- **Saved messages from a keyboard:** Alt 1 to Alt 0 send saved messages 1 to 10 (Query, Saved messages), with the fill-ins done: "Sending saved message 1: T N X 7 3 G L". One that needs a station says "Select a station first"; an empty one says so. While you are writing a message, finish or cancel it first.
 
 ### WeFax
 

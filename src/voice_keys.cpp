@@ -14,6 +14,7 @@
 #include "cfg/cfg_api.h"
 
 #include "buttons.h" /* has its own extern "C" */
+#include "dialog_js8.h" /* likewise */
 
 extern "C" {
 #include "clock.h"
@@ -35,6 +36,7 @@ static const uint32_t double_tap_ms = 400;
 static bool voice_key_held = false;
 static bool ctrl_held      = false;
 static bool shift_held     = false;
+static bool alt_held       = false;
 static bool caps_on        = false;
 
 /* A command used the voice key since it went down: its release is not a
@@ -64,6 +66,7 @@ static const char *help_text =
     "E, typing echo. A, reading received text aloud. "
     "H, this help. "
     "Without Caps Lock, F1 to F5 are the keys under the screen; hold one, or add Shift, for a long press. "
+    "In J S 8, Alt 1 to Alt 0 send saved messages 1 to 10. "
     "Tap Control to stop speech. Double tap Caps Lock for caps lock.";
 
 static bool voice_active() {
@@ -156,6 +159,11 @@ static void fkey_fire(int idx, bool hold) {
     lv_async_call(fkey_async, (void *)(uintptr_t)((unsigned)idx | (hold ? 0x100u : 0u)));
 }
 
+/* After the keyboard read, as fkey_async. */
+static void js8_saved_async(void *arg) {
+    dialog_js8_send_saved((int)(uintptr_t)arg);
+}
+
 /* True if `code` was one of F1 to F5, taken here. */
 static bool fkey(uint16_t code, int value) {
     if (code < KEY_F1 || code > KEY_F5) {
@@ -213,6 +221,11 @@ bool voice_keys_pre(uint16_t code, int value, bool *toggle_caps) {
             shift_held = value != 0;
             return false;
 
+        case KEY_LEFTALT:
+        case KEY_RIGHTALT:
+            alt_held = value != 0;
+            return false;
+
         default:
             break;
     }
@@ -227,6 +240,14 @@ bool voice_keys_pre(uint16_t code, int value, bool *toggle_caps) {
         } else if (voice_key_held) {
             command(code, true);
         }
+        return true;
+    }
+
+    /* Alt+1 .. Alt+0 in the JS8 window: saved messages 1 .. 10. Elsewhere
+     * Alt and a digit go on as before. */
+    if (alt_held && !voice_key_held && value == 1 && code >= KEY_1 && code <= KEY_0 && dialog_js8->run) {
+        swallowed.insert(code); /* its repeats and release too */
+        lv_async_call(js8_saved_async, (void *)(uintptr_t)(code - KEY_1));
         return true;
     }
 

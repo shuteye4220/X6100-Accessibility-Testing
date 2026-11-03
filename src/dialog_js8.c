@@ -6198,6 +6198,47 @@ static void saved_open(int focus) {
     lv_group_focus_obj(items[focus >= 0 && focus < SAVED_N ? focus : 0]);
 }
 
+/* Alt+1 .. Alt+0 on a keyboard (voice_keys.cpp): saved message 1 .. 10,
+ * sent as a press in Query > Saved messages would, and said. */
+bool dialog_js8_send_saved(int i) {
+    if (!dialog.run) return false;
+    if (i < 0 || i >= SAVED_N) return true;
+    user_touch();
+    if (composing) {
+        voice_say_text_fmt("Finish or cancel the message you are writing first");
+        return true;
+    }
+    if (!saved_msgs[i][0]) {
+        voice_say_text_fmt("Saved message %d is empty. Write it in Query, Saved messages", i + 1);
+        return true;
+    }
+    char  call[JS8_RX_CALL_LEN];
+    float freq;
+    int   snr;
+    bool  have = selected_station(call, sizeof(call), &freq, &snr);
+    if (!have && js8_macros_need_station(saved_msgs[i])) {
+        voice_say_text_fmt("Select a station first. Saved message %d needs one", i + 1);
+        return true;
+    }
+    char text[TX_TEXT_MAX * 2];
+    macros_fill(saved_msgs[i], true, text, sizeof(text));
+    char *t = text + strspn(text, " ");
+    for (char *end = t + strlen(t); end > t && end[-1] == ' ';) *--end = '\0';
+    if (!*t) {
+        voice_say_text_fmt("Nothing to send. Saved message %d has only fill-ins that are empty now", i + 1);
+        return true;
+    }
+    close_popups();
+    if (have) apply_hold(freq);
+    /* A failure says why in a pop-up (read aloud with pop-ups on). */
+    if (tx_queue(t)) {
+        char spoken[512]; /* as much as one utterance holds (VOICE_TEXT_MAX) */
+        voice_text_decoded(t, spoken, sizeof(spoken));
+        voice_say_text_fmt("Sending saved message %d: %s", i + 1, spoken);
+    }
+    return true;
+}
+
 /* For tools/js8_ui_harness: Waterfall: Sharp (0) .. Calm (3), as Settings. */
 void dialog_js8_wf_avg(int level) {
     param_i_set(cfg.js8.wf_avg(), level);

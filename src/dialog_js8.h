@@ -19,6 +19,10 @@ extern dialog_t *dialog_js8;
 /* Speaks the status line, and the selected station (Speak here). */
 void dialog_js8_say_status(void);
 
+/* Sends saved message i (0..9) as Query > Saved messages would, and says
+ * so or why not. False: the JS8 window isn't open. */
+bool dialog_js8_send_saved(int i);
+
 /* The callsign the list selection points at, if any (used by
  * tools/js8_ui_harness). */
 bool dialog_js8_selected_call(char *call, unsigned len);
