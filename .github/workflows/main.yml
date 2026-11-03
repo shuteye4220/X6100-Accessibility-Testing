@@ -142,6 +142,29 @@ jobs:
       run: |
         cd AetherX6100Buildroot && bash ./br_config.sh
 
+    # U-Boot 2023.01 comes only from ftp.denx.de, which is sometimes
+    # unreachable, and Buildroot's own mirror lacks it. Fetch the same
+    # file from elsewhere if need be; it must match the published
+    # checksum, or it isn't used and Buildroot tries denx itself.
+    - name: U-Boot source
+      run: |
+        F=u-boot-2023.01.tar.bz2
+        SUM=69423bad380f89a0916636e89e6dcbd2e4512d584308d922d1039d1e4331950f
+        DL=$(make -s --no-print-directory -C AetherX6100Buildroot/build printvars VARS=UBOOT_DL_DIR | sed -n 's/^UBOOT_DL_DIR=//p')
+        test -n "$DL" || { echo "::warning title=U-Boot source::no download folder"; exit 0; }
+        mkdir -p "$DL"
+        for u in https://ftp.denx.de/pub/u-boot/$F \
+                 https://distfiles.gentoo.org/distfiles/b6/$F \
+                 https://sources.openwrt.org/$F \
+                 https://tarballs.nixos.org/sha256/$SUM; do
+          if curl -fsSL --retry 2 --connect-timeout 20 -m 600 -o "$RUNNER_TEMP/$F" "$u" \
+             && echo "$SUM  $RUNNER_TEMP/$F" | sha256sum -c --quiet; then
+            mv "$RUNNER_TEMP/$F" "$DL/$F"; echo "U-Boot source from $u"; exit 0
+          fi
+          rm -f "$RUNNER_TEMP/$F"
+        done
+        echo "::warning title=U-Boot source::no mirror had it; Buildroot will try denx"
+
     # Build
     - name: Build
       run: |
