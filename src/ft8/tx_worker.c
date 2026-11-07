@@ -20,6 +20,7 @@
 #include "lvgl/lvgl.h"
 
 #include "../cfg/cfg_api.h"
+#include "../voice.h"
 #include "worker.h"
 
 /* FT8 audio tone offset inside the radio passband. */
@@ -128,6 +129,10 @@ bool tx_worker_run(const char *tx_text, float base_gain_offset, tx_abort_fn_t ab
 
     uint64_t radio_freq = cparam_i_get(cfg.cur.fg_freq());
     g_ports->radio->set_freq((int32_t)radio_freq + (int32_t)param_i_get(cfg.ft8.tx_freq()) - SIGNAL_FREQ_HZ);
+    /* Speech plays into the codec output the modulator takes: none while
+     * this transmits, as in tx_player.c. Before the slot alignment below,
+     * which counts the wait for speech to stop. */
+    voice_hold(true);
     g_ports->radio->set_modem(true);
 
     float    prev_gain_offset = gain_offset;
@@ -182,6 +187,7 @@ bool tx_worker_run(const char *tx_text, float base_gain_offset, tx_abort_fn_t ab
     param_f_set(cfg.ft8.output_gain_offset(), gain_offset - base_gain_offset + play_gain_offset);
     g_ports->audio->player_wait(player);
     g_ports->radio->set_modem(false);
+    voice_hold(false);
     g_ports->radio->set_freq((int32_t)radio_freq);
     free(samples);
     g_ports->audio->set_play_vol(param_f_get(cfg.audio.play_gain_db()));

@@ -343,9 +343,12 @@ static void * send_thread(void *arg) {
 
     msg_update_text_fmt("Sending message");
 
+    /* Speech would go out with the message: none meanwhile. */
+    voice_hold(true);
     radio_set_modem(true);
     play_item(NULL);
     radio_set_modem(false);
+    voice_hold(false);
 
     void *page_ptr = &page_msg_voice_1;
     scheduler_put(refresh_buttons_on_done, &page_ptr, sizeof(&page_ptr));
@@ -365,9 +368,11 @@ static void * beacon_thread(void *arg) {
 
             case VOICE_BEACON_PLAY:
                 msg_update_text_fmt("Sending message");
+                voice_hold(true);
                 radio_set_modem(true);
                 play_item(NULL);
                 radio_set_modem(false);
+                voice_hold(false);
                 break;
 
             case VOICE_BEACON_IDLE:
