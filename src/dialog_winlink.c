@@ -67,6 +67,7 @@ extern char **environ;
 #define XARA_BIN    "/usr/bin/xara"
 #define PAT_BIN     "/usr/bin/pat"
 #define DATA_DIR    "/mnt/winlink"
+#define PAT_OUT     DATA_DIR "/pat-output.txt" /* Pat's screen output, this run */
 #define CAPTURE_DEV "alsa_input.platform-sound.stereo-fallback"
 #define PLAYBACK_DEV "alsa_output.platform-sound.stereo-fallback"
 #define VARA_PORT   8300
@@ -143,6 +144,8 @@ static struct {
     int          xara_out;         /* xara's stdout and stderr, non-blocking */
     char         partial[256];     /* an unfinished line from it */
     size_t       partial_len;
+    char         why[LINE_LEN];    /* the modem's last note, said if it stops */
+    bool         after_panic;      /* the next line is a crash's message */
     lv_timer_t  *timer;
 
     char         mycall[16];
@@ -334,6 +337,18 @@ static void event(const char *shown, const char *spoken) {
 
 /***** The modem's output *****/
 
+/* Keeps what the modem said last, for a stop: without leading spaces. An
+ * untagged line only if there's nothing yet. */
+static void set_why(const char *text, bool untagged) {
+    if (untagged && S.why[0]) {
+        return;
+    }
+    while (*text == ' ') {
+        text++;
+    }
+    snprintf(S.why, sizeof(S.why), "%s", text);
+}
+
 /* "    14.980 < CONNECTED TEST1 TEST2 2300": what the modem tells its
  * client. "xara: ...": its own messages. The rest (frames, commands) is
  * left alone, but for a call ("> Connect { mycall: "A", remote: "B" }"). */
@@ -346,10 +361,39 @@ static void modem_line(char *line) {
     }
 
     if (!strncmp(p, "xara:", 5)) {
-        /* Its own notes: errors, mostly. Shown; spoken by the exit handler
-         * if it then stops. */
+        /* Its own notes: errors, mostly. Shown; the last is said by the
+         * exit handler if it then stops. */
         log_line(p);
         show();
+        set_why(p + 5, false);
+        return;
+    }
+
+    /* Not its own notes nor a time-stamped line: what comes before xara
+     * sets up its log (a bad option: the error, then the usage), or a
+     * crash ("thread 'main' panicked at ...", then the message). The
+     * first such line, or a crash's message, is the reason. */
+    if (*p && !isdigit((unsigned char)*p) && strncmp(p, "xara ", 5) != 0) {
+        if (!strncmp(p, "thread '", 8) && strstr(p, "panicked")) {
+            S.after_panic = true;
+            return;
+        }
+        if (S.after_panic) {
+            S.after_panic = false;
+            char crashed[LINE_LEN];
+
+            snprintf(crashed, sizeof(crashed), "crashed: %s", p);
+            log_line(crashed);
+            show();
+            set_why(crashed, false);
+            return;
+        }
+        if (line == p && strncmp(p, "usage:", 6) != 0 && strncmp(p, "see ", 4) != 0 &&
+            strncmp(p, "note:", 5) != 0 && !S.why[0]) {
+            log_line(p);
+            show();
+            set_why(p, true);
+        }
         return;
     }
 
@@ -520,6 +564,51 @@ static bool valid_grid(const char *g) {
 
 static void stop_modem(void);
 
+/* How a program ended, from waitpid: "exit code 1", "killed by signal 11,
+ * Segmentation fault". */
+static void exit_text(int status, char *out, size_t n) {
+    if (WIFSIGNALED(status)) {
+        snprintf(out, n, "killed by signal %d, %s", WTERMSIG(status), strsignal(WTERMSIG(status)));
+    } else if (WIFEXITED(status)) {
+        snprintf(out, n, "exit code %d", WEXITSTATUS(status));
+    } else {
+        snprintf(out, n, "status %d", status);
+    }
+}
+
+/* The last line of a file (its last 1 KB), without a Go log's
+ * "2026/11/06 19:50:01 " in front. Empty if none. */
+static void last_line(const char *path, char *out, size_t n) {
+    char buf[1024];
+    int  fd = open(path, O_RDONLY | O_CLOEXEC);
+
+    out[0] = '\0';
+    if (fd < 0) {
+        return;
+    }
+    off_t   end = lseek(fd, 0, SEEK_END);
+    off_t   at  = end > (off_t)sizeof(buf) - 1 ? end - (off_t)sizeof(buf) + 1 : 0;
+    ssize_t got = pread(fd, buf, sizeof(buf) - 1, at);
+
+    close(fd);
+    if (got <= 0) {
+        return;
+    }
+    buf[got] = '\0';
+    while (got > 0 && (buf[got - 1] == '\n' || buf[got - 1] == '\r' || buf[got - 1] == ' ')) {
+        buf[--got] = '\0';
+    }
+    char *line = strrchr(buf, '\n');
+
+    line = line ? line + 1 : buf;
+    int y, mo, d, h, mi, sec, skip = 0;
+
+    if (sscanf(line, "%4d/%2d/%2d %2d:%2d:%2d %n", &y, &mo, &d, &h, &mi, &sec, &skip) == 6 && skip > 0) {
+        line += skip;
+    }
+    snprintf(out, n, "%s", line);
+}
+
 static void timer_cb(lv_timer_t *t) {
     (void)t;
 
@@ -537,17 +626,45 @@ static void timer_cb(lv_timer_t *t) {
 
     /* Only our own two: the GUI has other children (pactl...), whose
      * exits are theirs to collect. */
-    if (S.xara > 0 && waitpid(S.xara, NULL, WNOHANG) == S.xara) {
+    int status;
+
+    if (S.xara > 0 && waitpid(S.xara, &status, WNOHANG) == S.xara) {
+        char how[64], shown[LINE_LEN], said[LINE_LEN * 2 + 96];
+
         S.xara = -1;
         read_modem(); /* its last words */
         stop_modem();
-        event("Modem stopped", "Modem stopped. See the window for why.");
+        exit_text(status, how, sizeof(how));
+        snprintf(shown, sizeof(shown), "Modem stopped: %s", how);
+        if (S.why[0]) {
+            char spoken[LINE_LEN * 2];
+
+            voice_text_decoded(S.why, spoken, sizeof(spoken));
+            snprintf(said, sizeof(said), "Modem stopped, %s. Its last words: %s", how, spoken);
+        } else {
+            snprintf(said, sizeof(said), "Modem stopped, %s. It said nothing about why.", how);
+        }
+        event(shown, said);
         return;
     }
-    if (S.pat > 0 && waitpid(S.pat, NULL, WNOHANG) == S.pat) {
+    if (S.pat > 0 && waitpid(S.pat, &status, WNOHANG) == S.pat) {
+        char how[64], last[LINE_LEN], shown[LINE_LEN], said[LINE_LEN * 3 + 96];
+
         S.pat = -1;
         stop_modem();
-        event("Pat stopped", "Pat stopped. Winlink stopped.");
+        exit_text(status, how, sizeof(how));
+        last_line(PAT_OUT, last, sizeof(last));
+        if (last[0]) {
+            char spoken[LINE_LEN * 2];
+
+            log_line(last);
+            voice_text_decoded(last, spoken, sizeof(spoken));
+            snprintf(said, sizeof(said), "Pat stopped, %s. Its last words: %s. Winlink stopped.", how, spoken);
+        } else {
+            snprintf(said, sizeof(said), "Pat stopped, %s. Winlink stopped.", how);
+        }
+        snprintf(shown, sizeof(shown), "Pat stopped: %s", how);
+        event(shown, said);
         return;
     }
 }
@@ -621,6 +738,8 @@ static bool start_modem(void) {
     S.xara_out = fds[0];
     fcntl(S.xara_out, F_SETFL, fcntl(S.xara_out, F_GETFL) | O_NONBLOCK);
     S.partial_len = 0;
+    S.why[0]       = '\0';
+    S.after_panic  = false;
 
     /* Pat: settings for this run in its environment */
     char env_call[48], env_grid[48], env_http[64], env_vara[64], env_bw[48];
@@ -681,7 +800,14 @@ static bool start_modem(void) {
 
     /* Listening for calls too ("--listen varahf"): peer-to-peer, and a
      * gateway calling back. The web address comes from PAT_HTTPADDR. */
-    S.pat = spawn(PAT_BIN, pat_argv, envp, -1);
+    /* Its output kept, for why it stopped: what it says before its log
+     * file is open (a bad config) goes only there. */
+    int pat_out = open(PAT_OUT, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+
+    S.pat = spawn(PAT_BIN, pat_argv, envp, pat_out);
+    if (pat_out >= 0) {
+        close(pat_out);
+    }
     free(envp);
     if (S.pat < 0) {
         stop_modem();
