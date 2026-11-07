@@ -906,8 +906,8 @@ static void network_cb(button_data_t *btn) {
     } else if (ip[0]) {
         spoken_ip(ip, sip, sizeof(sip));
         voice_say_text_fmt("Network access on. Anyone on this network can reach Pat and the modem. Pat's web page "
-                           "is at %s, port %d.",
-                           sip, PAT_PORT);
+                           "is at %s, port %d%s.",
+                           sip, PAT_PORT, S.running ? "" : ", once Winlink is started");
     } else {
         voice_say_text_fmt("Network access on, but the radio has no network address. Is Wi-Fi on?");
     }

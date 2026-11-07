@@ -373,7 +373,7 @@ APP page 4, F4, in test builds that carry the xara modem and Pat. It opens with 
 - **F1** is the page key: "Winlink page 1" and "page 2".
 - **F2 Start or Stop.** Start sets USB digital and at most 5 watts. Your callsign must be set first. Pat runs only while started.
 - **F3** sets the bandwidth: 500, 2300 or 2750.
-- **F4 Network** is off each time the window opens. When on, Pat's page is at the radio's address, port 8080, and the window says the address. **Anyone on that network can then use your Winlink account and key your radio**, so use it only on your own network.
+- **F4 Network** is off each time the window opens. When on, and Winlink is started (F2), Pat's page is at the radio's address, port 8080, and the window says the address. If Winlink stops, so does the page: "refused to connect" in the browser. **Anyone on that network can then use your Winlink account and key your radio**, so use it only on your own network.
 - **F5 Status:** also the MFK press, and Speak here.
 - **Page 2:** F2 TX level, and F3 speeds "Registered" or "Free".
 
